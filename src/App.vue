@@ -5,8 +5,6 @@ import { useStore } from '@/stores'
 import DriverInput from './components/driverInput.vue'
 import Navbar from './components/Navbar.vue'
 
-import dropdown from 'vue-dropdowns';
-
 export default {
   name: 'App',
   components: {
