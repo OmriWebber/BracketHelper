@@ -5,6 +5,7 @@ export const useStore = defineStore('store', () => {
   const drivers = ref([])
 
   function addDriver(driver, score) {
+    console.log(driver, score)
     this.drivers.push({
       name: driver,
       score: score
@@ -35,5 +36,9 @@ export const useStore = defineStore('store', () => {
     return bracket
   }
 
+  
+
   return { drivers, addDriver, removeDriver, sortByScore }
 })
+
+

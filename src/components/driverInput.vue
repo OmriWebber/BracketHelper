@@ -12,10 +12,10 @@ export default {
         const driverScore = ref()
 
         const appendDriver = () => {
-            store.addDriver({
-                name: driverName.value,
-                score: driverScore.value
-            })
+            store.addDriver(
+                driverName.value,
+                driverScore.value
+            )
             driverName.value = ''
             driverScore.value = ''
             driverScore.placeholder = 0
