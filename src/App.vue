@@ -4,11 +4,13 @@ import { ref } from 'vue'
 import { useStore } from '@/stores'
 import DriverInput from './components/driverInput.vue'
 import Navbar from './components/Navbar.vue'
+import VueBasicAlert from 'vue-basic-alert'
 
 export default {
   name: 'App',
   components: {
     DriverInput,
+    VueBasicAlert,
     Navbar
   },
 
@@ -30,6 +32,8 @@ export default {
 </script>
 
 <template>
+    <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
+
     <Navbar />
     <main>
       <div class="container">
@@ -67,6 +71,9 @@ export default {
           </div>
         </div>
       </div>
+      
+
+        
       </main>
     
 
