@@ -6,7 +6,7 @@
     <header>
         <nav class="container">
             <div class="branding">
-                <img class="logo" src="../assets/logo.png" alt="">
+                <img class="logo" src="logo.png" alt="">
             </div>
             <ul class="nav-links">
                 <h4>Bracket Helper</h4>
