@@ -43,7 +43,7 @@ export default {
         
         <div class="row">
             <div class="col-12">
-                <button @click="appendDriver">Add Driver</button>
+                <button class="btn btn-secondary" @click="appendDriver">Add Driver</button>
             </div>
         </div>
 
