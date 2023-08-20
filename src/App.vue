@@ -35,7 +35,7 @@ export default {
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <img class="herologo" src="src/assets/logoalt.png" alt="" width="100">
+            <img class="herologo" src="../assets/logoalt.png" alt="" width="100">
             <p class="intro-text">
               Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for your tournaments. Simply enter the driver's name and score, and the app will keep track of the scores for you!
             </p>
