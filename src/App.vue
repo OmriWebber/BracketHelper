@@ -73,7 +73,7 @@ export default {
     
 
     return {
-      drivers: store.drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket
+      driver: store.drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket
     }
   }
 }
