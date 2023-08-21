@@ -23,27 +23,52 @@ export default {
     // Create refs for the driver list, driver name, driver score, and alert
     const alert = ref()
     const cutoff = ref(16)
-    const bracket = ref([])
+    let bracket = ref([])
 
     // Sort the driver list by score
     const sortByScore = () => {
       store.sortByScore()
+      alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
+
     }
 
     // Create and Render the bracket
     const renderBracket = () => {
+
+      if (store.drivers.length < cutoff.value) {
+        alert.value.showAlert('error', 'Add more drivers.', 'Not enough drivers for a top ' + cutoff.value + ' bracket')
+        console.log("Not enough drivers for a top " + cutoff.value + " bracket")
+        return
+      }
+      
       bracket = store.calculateBracket(cutoff.value)
+      alert.value.showAlert('success', 'Scroll down to see bracket.', 'Bracket Generated')
+
+    }
+
+    // Copy to Clipboard
+    const copyToClipboard = () => {
+      let text = ''
+      for (let i = 0; i < store.drivers.length; i++) {
+        text += store.drivers[i].name + ': ' + store.drivers[i].score + '\n'
+      }
+      navigator.clipboard.writeText(text)
+      alert.value.showAlert('success', 'Copied to Clipboard', 'Driver List Copied to Clipboard')
     }
 
     // Reset the driver list
     const reset = () => {
       store.clearDrivers()
+      alert.value.showAlert('info', 'Success', 'Reset Driver List')
+
     }
 
     // Remove a driver from the list by index and show an alert
     const removeDriver = (index) => {
+      let driverName = store.drivers[index].name
+      let driverScore = store.drivers[index].score
       store.removeDriver(index)
-      alert.value.showAlert('success', 'Score: ' + driverScore.value, driverName.value + ' removed from driver list')
+      alert.value.showAlert('error', 'Score: ' + driverScore, driverName + ' removed from driver list')
     }
     
 
@@ -55,7 +80,7 @@ export default {
 </script>
 
 <template>
-    <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
+    <vue-basic-alert :duration="300" :closeIn="3000" ref="alert" />
 
     <Navbar />
     <main>

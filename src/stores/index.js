@@ -33,19 +33,18 @@ export const useStore = defineStore('store', () => {
 
     const qualifiedDrivers = this.drivers.slice(0, limit)
     console.log(toRaw(qualifiedDrivers))
-    let bracket = []
     let i = 0
+    this.bracket = []
 
     while (i < (limit / 2)) {
       let match = {
         driver1: qualifiedDrivers[i],
         driver2: qualifiedDrivers[(limit - 1) - i]
       }
-      bracket.push(match)
+      this.bracket.push(match)
       i += 1
     }
-    console.log(bracket)
-    return bracket
+    console.log(this.bracket)
   }
 
 

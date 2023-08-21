@@ -20,27 +20,11 @@ import { useStore } from '@/stores'
 import { ref } from 'vue'
 
 export default {
-  props: {
-    cutoff: {
-      type: Number,
-      default: 16
-    },
-    bracket: {
-      type: Array,
-      default: null
-    }
-  },
   setup() {
     const store = useStore()
-    const bracket = ref(null)
-
-    const calculateBracket = () => {
-      bracket.value = store.calculateBracket()
-    }
 
     return {
-      calculateBracket,
-      bracket
+      bracket : ref(store.bracket)
     }
   }
 }
