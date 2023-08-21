@@ -19,7 +19,6 @@ export default {
 
         const appendDriver = () => {
             if (!driverName.value.trim()) {
-                console.log(alert)
                 alert.value.showAlert('error', 'Please enter a driver name', 'Error')
                 return
             }
@@ -72,23 +71,21 @@ export default {
 <template>
     <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
 
-    <div class="container">
-        <div class="row">
-            <div class="col-8">
-                <input v-model="driverName" type="text" placeholder="Driver's Name"/>
-            </div>
-            <div class="col-4">
-                <input v-model="driverScore" placeholder="Score"/>
-            </div>
+    <div class="row">
+        <div class="col-8">
+            <input v-model="driverName" type="text" placeholder="Driver's Name"/>
         </div>
-        
-        <div class="row">
-            <div class="col-12">
-                <button class="btn btn-secondary" @click="appendDriver" :disabled="!isValid">Add Driver</button>
-            </div>
+        <div class="col-4">
+            <input v-model="driverScore" placeholder="Score"/>
         </div>
-
     </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-dark" @click="appendDriver" :disabled="!isValid">Add Driver</button>
+        </div>
+    </div>
+
 </template>
 
 <style lang="scss" scoped>

@@ -1,8 +1,9 @@
 <script>
 
-import { ref } from 'vue'
+import { ref, toRaw } from 'vue'
 import { useStore } from '@/stores'
 import DriverInput from './components/driverInput.vue'
+import TournamentBracket from './components/TournamentBracket.vue';
 import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
 
@@ -11,21 +12,43 @@ export default {
   components: {
     DriverInput,
     VueBasicAlert,
+    TournamentBracket,
     Navbar
   },
 
   setup () {
+    // Get the store
     const store = useStore()
+
+    // Create refs for the driver list, driver name, driver score, and alert
+    const alert = ref()
+    const cutoff = ref(16)
+    const bracket = ref([])
+
+    // Sort the driver list by score
     const sortByScore = () => {
       store.sortByScore()
     }
-    const cutoff = ref(16)
 
-    const bracket = store.bracket
-    console.log(bracket)
+    // Create and Render the bracket
+    const renderBracket = () => {
+      bracket = store.calculateBracket(cutoff.value)
+    }
+
+    // Reset the driver list
+    const reset = () => {
+      store.clearDrivers()
+    }
+
+    // Remove a driver from the list by index and show an alert
+    const removeDriver = (index) => {
+      store.removeDriver(index)
+      alert.value.showAlert('success', 'Score: ' + driverScore.value, driverName.value + ' removed from driver list')
+    }
+    
 
     return {
-      drivers: store.drivers, sortByScore, cutoff, bracket
+      driver: store.drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket
     }
   }
 }
@@ -43,25 +66,43 @@ export default {
             <p class="intro-text">
               Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for your tournaments. Simply enter the driver's name and score, and the app will keep track of the scores for you!
             </p>
-            <DriverInput />
+            <div class="container">
+              <DriverInput />
+              <div class="row">
+                <div class="col-6">
+                  <button class="btn sub-btn btn-danger" @click="reset">Clear Drivers</button>
+
+                </div>
+                <div class="col-6">
+                  <button class="btn sub-btn btn-success" @click="renderBracket">Create Bracket</button>
+
+                </div>
+              </div>
+              
+            </div>
+            
           </div>
           <div class="col-md-6">
             <div class="row">
-              <div class="col-7">
+              <div class="col-5">
                 <h3 class="driver-list-title">Driver List</h3>
               </div>
-              <div class="col-5">
+              <div class="col-7">
                 <select v-model="cutoff" name="cutoff" id="cutoff">
                   <option value="8">Top 8</option>
                   <option value="16">Top 16</option>
                   <option value="32">Top 32</option>
                 </select>
-                <button class="button" @click="sortByScore">Sort</button>
+                <button class="btn btn-warning" @click="sortByScore">Sort</button>
+                <button class="btn btn-primary" @click="copyToClipboard">
+                  <i class="bi-clipboard"></i> Copy
+                </button>
               </div>
             </div>
             
             <ul class="driver-list">
               <li v-for="(driver, index) in drivers" :key="index">
+                <a class="btn remove-button" @click="removeDriver(index)"><i class="bi-x-lg"></i></a>
                 <span class="orderCounter">{{ index + 1 }}</span>
                 <span class="driverName">{{ driver.name }}</span>
                 <span class="driverScore"><span class="muted">Score:</span> {{ driver.score }}</span>
@@ -70,16 +111,25 @@ export default {
             </ul>
           </div>
         </div>
+        <TournamentBracket :teams="bracket" />
+
       </div>
-      
 
         
-      </main>
+    </main>
     
 
 </template>
 
 <style scoped>
+
+.remove-button {
+  margin: 0.5rem;
+  padding:2px 8px;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  color: rgb(196, 22, 22);
+}
 
 .cutoff-line {
   color: rgb(196, 22, 22);
@@ -118,6 +168,7 @@ export default {
     margin: 30px;
   }
   .driverScore {
+    margin-top: 10px;
     margin-right: 40px;
     float:right;
   }
@@ -149,14 +200,21 @@ export default {
   }
 
   #cutoff {
-    padding: 3px;
+    padding: 8px;
     border-radius: 5px;
+    margin-left: -30px;
+    margin-right: 20px;
+  }
+
+  .sub-btn {
+    padding: 7px;
+    width: 100%;
+    margin: 0px;
   }
 
   button {
-    width: 40%;
-    margin: 0.5rem;
-    padding: 0.5rem;
+    margin: 0.5rem 0.3rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 0.5rem;
     border: 1px solid #ccc;
   }

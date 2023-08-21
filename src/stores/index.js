@@ -1,9 +1,9 @@
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useStore = defineStore('store', () => {
   const drivers = ref([])
-  const bracket = calculateBracket()
+  const bracket = ref([])
 
   function addDriver(driver, score) {
     console.log(driver, score)
@@ -21,25 +21,38 @@ export const useStore = defineStore('store', () => {
     return this.drivers.sort((a, b) => b.score - a.score)
   }
 
-  function calculateBracket() {
-    const driverCount = drivers.length
-    const bracket = []
-    let i = 0
+  function clearDrivers() {
+    this.drivers.splice(0);
+  }
 
-    while (i < driverCount) {
-      bracket.push({
-        driver1: this.drivers[i],
-        driver2: this.drivers[driverCount - i]
-      })
-      i += 1
+  function calculateBracket(limit) {
+    if (this.drivers.length < limit) {
+      console.log("Not enough drivers for a top " + limit + " bracket")
+      return
     }
 
+    const qualifiedDrivers = this.drivers.slice(0, limit)
+    console.log(toRaw(qualifiedDrivers))
+    let bracket = []
+    let i = 0
+
+    while (i < (limit / 2)) {
+      let match = {
+        driver1: qualifiedDrivers[i],
+        driver2: qualifiedDrivers[(limit - 1) - i]
+      }
+      bracket.push(match)
+      i += 1
+    }
+    console.log(bracket)
     return bracket
   }
 
+
+
   
 
-  return { drivers, addDriver, removeDriver, sortByScore, bracket }
+  return { drivers, bracket, addDriver, removeDriver, clearDrivers, sortByScore, calculateBracket }
 })
 
 
