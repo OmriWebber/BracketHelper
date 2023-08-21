@@ -35,7 +35,7 @@ export default {
 
             driverName.value = ''
             driverScore.value = ''
-            driverScore.placeholder = 0
+            driverScore.placeholder = 'Score'
         }
 
         const validateScore = () => {
