@@ -18,7 +18,7 @@ export const useStore = defineStore('store', () => {
   }
 
   function sortByScore() {
-    return this.drivers.sort((a, b) => b.score - a.score)
+    return this.drivers.sort((a, b) => b.score.total - a.score.total)
   }
 
   function clearDrivers() {

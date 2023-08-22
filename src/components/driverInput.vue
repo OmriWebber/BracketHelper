@@ -14,7 +14,9 @@ export default {
     setup () {
         const store = useStore()
         const driverName = ref('')
-        const driverScore = ref()
+        const driverScoreLine = ref()
+        const driverScoreAngle = ref()
+        const driverScoreStyle = ref()
         const alert = ref(null)
 
         const appendDriver = () => {
@@ -22,35 +24,53 @@ export default {
                 alert.value.showAlert('error', 'Please enter a driver name', 'Error')
                 return
             }
-            if (!isValidScore()) {
-                alert.value.showAlert('error', 'Please enter a driver score', 'Error')
+            if (!isValidLineScore()) {
+                alert.value.showAlert('error', 'Please enter a valid line score (0 - 33)', 'Error')
                 return
             }
 
+            if (!isValidAngleScore()) {
+                alert.value.showAlert('error', 'Please enter a valid angle score (0 - 33)', 'Error')
+                return
+            }
+
+            if (!isValidStyleScore()) {
+                alert.value.showAlert('error', 'Please enter a valid style score (0 - 33)', 'Error')
+                return
+            }
+
+            let totalScore = parseInt(driverScoreLine.value) + parseInt(driverScoreAngle.value) + parseInt(driverScoreStyle.value)
+            let driverScore = {line: driverScoreLine.value, angle:  driverScoreAngle.value, style: driverScoreStyle.value, total: totalScore}
+
             store.addDriver(
                 driverName.value.trim(),
-                driverScore.value
+                driverScore
                 )
-                alert.value.showAlert('success', 'Score: ' + driverScore.value, driverName.value + ' added to driver list')
+                alert.value.showAlert('success', 'Score: ' + driverScore.total, driverName.value + ' added to driver list')
 
             driverName.value = ''
-            driverScore.value = ''
-            driverScore.placeholder = 'Score'
+            
+            driverScoreLine.value = ''
+            driverScoreAngle.value = ''
+            driverScoreStyle.value = ''
+            driverScoreLine.placeholder = 'Line'
+            driverScoreAngle.placeholder = 'Angle'
+            driverScoreStyle.placeholder = 'Style'
         }
 
-        const validateScore = () => {
-            if (!isValidScore()) {
-                scoreError.value = 'Score should be between 0-99 or DNF.'
-            } else {
-                scoreError.value = ''
-            }
+        const isValidLineScore = () => {
+            const lineScore = parseInt(driverScoreLine.value)
+            return lineScore >= 0 && lineScore <= 33
         }
-        const isValidScore = () => {
-            if (driverScore.value === 'DNF') {
-                return true
-            }
-            const score = parseInt(driverScore.value)
-            return score >= 0 && score <= 99
+
+        const isValidAngleScore = () => {
+            const angleScore = parseInt(driverScoreAngle.value)
+            return angleScore >= 0 && angleScore <= 33
+        }
+
+        const isValidStyleScore = () => {
+            const lineScore = parseInt(driverScoreStyle.value)
+            return lineScore >= 0 && lineScore <= 33
         }
 
         const isValid = ref(true)
@@ -58,9 +78,10 @@ export default {
 
         return {
             driverName,
-            driverScore,
+            driverScoreLine,
+            driverScoreAngle,
+            driverScoreStyle,
             appendDriver,
-            validateScore,
             isValid,
             alert
         }
@@ -72,12 +93,12 @@ export default {
     <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
 
     <div class="row">
-        <div class="col-8">
+        <div class="col-12">
             <input v-model="driverName" type="text" placeholder="Driver's Name"/>
         </div>
-        <div class="col-4">
-            <input v-model="driverScore" placeholder="Score"/>
-        </div>
+        <div class="col-4"><input v-model="driverScoreLine" type="number" placeholder="Line"></div>
+        <div class="col-4"><input v-model="driverScoreAngle" type="number" placeholder="Angle"></div>
+        <div class="col-4"><input v-model="driverScoreStyle" type="number" placeholder="Style"></div>
     </div>
     
     <div class="row">

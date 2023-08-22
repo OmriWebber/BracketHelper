@@ -53,7 +53,7 @@ export default {
       
       let text = ''
       for (let i = 0; i < store.drivers.length; i++) {
-        text += store.drivers[i].name + ' - ' + store.drivers[i].score + '\n'
+        text += store.drivers[i].name + ' - ' + store.drivers[i].score.total + '\n'
       }
 
       try {
@@ -136,13 +136,14 @@ export default {
                 </button>
               </div>
             </div>
-            
+            <p v-if="drivers.length == 0" class="text-center" style="margin-top:30px;">No drivers added yet.</p>
             <ul class="driver-list">
+              
               <li v-for="(driver, index) in drivers" :key="index">
                 <a class="btn remove-button" @click="removeDriver(index)"><i class="bi-x-lg"></i></a>
                 <span class="orderCounter">{{ index + 1 }}</span>
                 <span class="driverName">{{ driver.name }}</span>
-                <span class="driverScore"><span class="muted">Score:</span> {{ driver.score }}</span>
+                <span class="driverScore"><span class="muted">Score:</span> {{ driver.score.total }}</span>
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
