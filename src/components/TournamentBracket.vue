@@ -26,7 +26,6 @@ export default {
     const bracket = ref(store.bracket)
 
     watch(() => store.bracket, () => {
-      console.log("TEST")
       bracket.value = store.bracket
     })
     return {

@@ -53,7 +53,7 @@ export default {
       
       let text = ''
       for (let i = 0; i < store.drivers.length; i++) {
-        text += store.drivers[i].name + ' - ' + store.drivers[i].score.total + '\n'
+        text += i+1 + ". " + store.drivers[i].name + ' - ' + store.drivers[i].score.total + '\n'
       }
 
       try {
@@ -143,7 +143,7 @@ export default {
                 <a class="btn remove-button" @click="removeDriver(index)"><i class="bi-x-lg"></i></a>
                 <span class="orderCounter">{{ index + 1 }}</span>
                 <span class="driverName">{{ driver.name }}</span>
-                <span class="driverScore"><span class="muted">Score:</span> {{ driver.score.total }}</span>
+                <span class="driverScore"><span class="muted" >{{ driver.score.line }} / {{ driver.score.angle }} / {{ driver.score.style }}</span> <span class="muted">Total:</span> {{ driver.score.total }}</span>
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
@@ -153,14 +153,26 @@ export default {
 
       </div>
 
-        
+      <footer class="text-light text-center text-lg-start">
+        <!-- Copyright -->
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+          Made with <img width="20" height="20" src="images/heart.png" alt="like--v1"/> by <img height="20" src="images/soup2.png"/>
+          
+        </div>
+        <!-- Copyright -->
+      </footer>
     </main>
     
 
 </template>
 
 <style scoped>
-
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: #202020;
+}
 .remove-button {
   margin: 0.5rem;
   padding:2px 8px;
