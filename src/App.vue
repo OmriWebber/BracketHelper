@@ -6,6 +6,7 @@ import DriverInput from './components/driverInput.vue'
 import TournamentBracket from './components/TournamentBracket.vue';
 import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
+import useClipboard from 'vue-clipboard3'
 
 export default {
   name: 'App',
@@ -23,7 +24,9 @@ export default {
     // Create refs for the driver list, driver name, driver score, and alert
     const alert = ref()
     const cutoff = ref(16)
-    let bracket = ref([])
+    const bracket = store.bracket
+    const drivers = store.drivers
+    const { toClipboard } = useClipboard()
 
     // Sort the driver list by score
     const sortByScore = () => {
@@ -34,26 +37,35 @@ export default {
 
     // Create and Render the bracket
     const renderBracket = () => {
-
       if (store.drivers.length < cutoff.value) {
         alert.value.showAlert('error', 'Add more drivers.', 'Not enough drivers for a top ' + cutoff.value + ' bracket')
         console.log("Not enough drivers for a top " + cutoff.value + " bracket")
         return
       }
       
-      bracket = store.calculateBracket(cutoff.value)
+      store.calculateBracket(cutoff.value)
       alert.value.showAlert('success', 'Scroll down to see bracket.', 'Bracket Generated')
 
     }
 
     // Copy to Clipboard
-    const copyToClipboard = () => {
+    const copyToClipboard = async () => {
+      
       let text = ''
       for (let i = 0; i < store.drivers.length; i++) {
-        text += store.drivers[i].name + ': ' + store.drivers[i].score + '\n'
+        text += store.drivers[i].name + ' - ' + store.drivers[i].score + '\n'
       }
-      navigator.clipboard.writeText(text)
-      alert.value.showAlert('success', 'Copied to Clipboard', 'Driver List Copied to Clipboard')
+
+      try {
+        await toClipboard(text)
+        console.log('Copied to clipboard')
+        alert.value.showAlert('success', 'Copied to Clipboard', 'Driver List Successfully Copied')
+
+      } catch (e) {
+        console.error(e)
+        alert.value.showAlert('error', 'Unable to perform action', 'Error copying driver list')
+
+      }
     }
 
     // Reset the driver list
@@ -73,7 +85,7 @@ export default {
     
 
     return {
-      drivers: store.drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket
+      drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket, copyToClipboard,
     }
   }
 }
@@ -136,7 +148,7 @@ export default {
             </ul>
           </div>
         </div>
-        <TournamentBracket :teams="bracket" />
+        <TournamentBracket/>
 
       </div>
 

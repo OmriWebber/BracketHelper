@@ -23,8 +23,10 @@ export default {
   setup() {
     const store = useStore()
 
+    const bracket = ref(store.bracket)
+    console.log(bracket.value)
     return {
-      bracket : ref(store.bracket)
+      bracket
     }
   }
 }

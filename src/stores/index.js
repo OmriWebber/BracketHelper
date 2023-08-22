@@ -1,4 +1,4 @@
-import { ref, computed, toRaw } from 'vue'
+import { ref, toRaw } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useStore = defineStore('store', () => {

@@ -4,17 +4,13 @@ import '../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
+import VueClipboard from 'vue3-clipboard'
 import App from './App.vue'
 
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
-
-watch(pinia.state,(state) => {
-      localStorage.setItem("drivers", JSON.stringify(state.drivers));
-    },
-    { deep: true }
-);
+app.use(VueClipboard)
 
 app.mount('#app')
