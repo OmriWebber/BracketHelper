@@ -168,7 +168,7 @@ export default {
       <footer class="text-light text-center text-lg-start">
         <!-- Copyright -->
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-          Made with <img width="20" height="20" src="images/heart.png" alt="like--v1"/> by <img height="20" src="images/soup2.png"/>
+          Made with <img width="20" height="20" src="/images/heart.png" alt="like--v1"/> by <img height="20" src="/images/soup2.png"/>
           
         </div>
         <!-- Copyright -->
