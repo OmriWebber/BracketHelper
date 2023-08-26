@@ -21,6 +21,10 @@ export const useStore = defineStore('store', () => {
     return this.drivers.sort((a, b) => b.score.total - a.score.total)
   }
 
+  function sortRandom() {
+    return this.drivers.sort((a, b) => 0.5 - Math.random())
+  }
+
   function clearDrivers() {
     this.drivers.splice(0);
   }
@@ -38,8 +42,8 @@ export const useStore = defineStore('store', () => {
 
     while (i < (limit / 2)) {
       let match = {
-        driver1: qualifiedDrivers[i],
-        driver2: qualifiedDrivers[(limit - 1) - i]
+        driver1: {position:i+1,driver:qualifiedDrivers[i]},
+        driver2: {position:((limit - 1) - i+1), driver:qualifiedDrivers[(limit - 1) - i]}
       }
       this.bracket.push(match)
       i += 1
@@ -51,7 +55,7 @@ export const useStore = defineStore('store', () => {
 
   
 
-  return { drivers, bracket, addDriver, removeDriver, clearDrivers, sortByScore, calculateBracket }
+  return { drivers, bracket, addDriver, removeDriver, clearDrivers, sortByScore, calculateBracket, sortRandom }
 })
 
 

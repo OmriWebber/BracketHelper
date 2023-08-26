@@ -12,11 +12,13 @@
     "bootstrap-icons": "^1.10.5",
     "bootstrap-vue": "^2.23.1",
     "brackets-manager": "^1.6.4",
+    "brackets-memory-db": "^1.0.4",
     "pinia": "^2.1.6",
     "vue": "^3.3.4",
     "vue-basic-alert": "^1.1.0",
     "vue-clipboard3": "^2.0.0",
     "vue-dropdowns": "^1.1.2",
+    "vue-tournament": "^1.1.1",
     "vue-tournament-bracket-generator": "github:diegomengarda/vue-tournament-bracket-generator",
     "vue3-clipboard": "^1.0.0"
   },

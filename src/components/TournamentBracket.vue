@@ -5,10 +5,10 @@
     <div v-if="bracket">
       <div v-for="(match, index) in bracket" :key="index" class="matchup">
         <div class="driver">
-          {{ match.driver1.name }}: {{ match.driver1.score.total }}
+          {{match.driver1.position}}. {{ match.driver1.driver.name }}
         </div>
         <div class="driver">
-          {{ match.driver2.name }}: {{ match.driver2.score.total }}
+          {{match.driver2.position}}. {{ match.driver2.driver.name }}
         </div>
         <br>
       </div>
@@ -22,6 +22,7 @@ import { ref, watch } from 'vue'
 
 export default {
   setup() {
+
     const store = useStore()
     const bracket = ref(store.bracket)
 

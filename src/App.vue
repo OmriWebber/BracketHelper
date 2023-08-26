@@ -21,6 +21,8 @@ export default {
     // Get the store
     const store = useStore()
 
+    
+
     // Create refs for the driver list, driver name, driver score, and alert
     const alert = ref()
     const cutoff = ref(16)
@@ -32,6 +34,13 @@ export default {
     const sortByScore = () => {
       store.sortByScore()
       alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
+
+    }
+
+    // Sort the driver list by score
+    const sortRandom = () => {
+      store.sortRandom()
+      alert.value.showAlert('success', 'Success', 'Driver List Randomised')
 
     }
 
@@ -85,7 +94,7 @@ export default {
     
 
     return {
-      drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket, copyToClipboard,
+      drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket, copyToClipboard, sortRandom
     }
   }
 }
@@ -121,20 +130,23 @@ export default {
           </div>
           <div class="col-md-6">
             <div class="row">
-              <div class="col-5">
+              <center>
+              <div class="col-12">
                 <h3 class="driver-list-title">Driver List</h3>
               </div>
-              <div class="col-7">
+              <div class="controls col-12">
                 <select v-model="cutoff" name="cutoff" id="cutoff">
                   <option value="8">Top 8</option>
                   <option value="16">Top 16</option>
                   <option value="32">Top 32</option>
                 </select>
                 <button class="btn btn-warning" @click="sortByScore">Sort</button>
+                <button class="btn btn-success" @click="sortRandom">Randomize</button>
                 <button class="btn btn-primary" @click="copyToClipboard">
                   <i class="bi-clipboard"></i> Copy
                 </button>
               </div>
+            </center>
             </div>
             <p v-if="drivers.length == 0" class="text-center" style="margin-top:30px;">No drivers added yet.</p>
             <ul class="driver-list">
@@ -167,6 +179,13 @@ export default {
 </template>
 
 <style scoped>
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 footer {
   position: absolute;
   bottom: 0;
@@ -206,7 +225,7 @@ footer {
 }
   .driver-list-title {
     margin-top: 12px;
-    text-align: left;
+    text-align: center;
   }
 
   .herologo {
@@ -250,10 +269,11 @@ footer {
   }
 
   #cutoff {
+    vertical-align: middle;
     padding: 8px;
+    height: 40px;
     border-radius: 5px;
-    margin-left: -30px;
-    margin-right: 20px;
+    margin: 10px 10px;
   }
 
   .sub-btn {

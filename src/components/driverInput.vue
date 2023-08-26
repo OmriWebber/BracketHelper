@@ -18,12 +18,24 @@ export default {
         const driverScoreAngle = ref()
         const driverScoreStyle = ref()
         const alert = ref(null)
+        const checked = ref(true)
 
         const appendDriver = () => {
             if (!driverName.value.trim()) {
                 alert.value.showAlert('error', 'Please enter a driver name', 'Error')
                 return
             }
+
+            if (!checked.value) {
+                store.addDriver(
+                    driverName.value.trim(),
+                    { line: 0, angle: 0, style: 0, total: 0 }
+                )
+                alert.value.showAlert('success', 'Score: 0', driverName.value + ' added to driver list')
+                driverName.value = ''
+                return
+            }
+            
             if (!isValidLineScore()) {
                 alert.value.showAlert('error', 'Please enter a valid line score (0 - 33)', 'Error')
                 return
@@ -40,7 +52,12 @@ export default {
             }
 
             let totalScore = parseInt(driverScoreLine.value) + parseInt(driverScoreAngle.value) + parseInt(driverScoreStyle.value)
-            let driverScore = {line: driverScoreLine.value, angle:  driverScoreAngle.value, style: driverScoreStyle.value, total: totalScore}
+            let driverScore = { 
+                line: driverScoreLine.value, 
+                angle:  driverScoreAngle.value, 
+                style: driverScoreStyle.value, 
+                total: totalScore
+            }
 
             store.addDriver(
                 driverName.value.trim(),
@@ -74,7 +91,7 @@ export default {
         }
 
         const isValid = ref(true)
-    
+        
 
         return {
             driverName,
@@ -83,6 +100,7 @@ export default {
             driverScoreStyle,
             appendDriver,
             isValid,
+            checked,
             alert
         }
     }
@@ -93,12 +111,19 @@ export default {
     <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
 
     <div class="row">
+        <div class="checkbox">
+            <label class="">Qualifications</label><input class="qualiCheckbox" type="checkbox" v-model="checked">
+        </div>
         <div class="col-12">
             <input v-model="driverName" type="text" placeholder="Driver's Name"/>
         </div>
-        <div class="col-4"><input v-model="driverScoreLine" type="number" placeholder="Line"></div>
-        <div class="col-4"><input v-model="driverScoreAngle" type="number" placeholder="Angle"></div>
-        <div class="col-4"><input v-model="driverScoreStyle" type="number" placeholder="Style"></div>
+        
+        <span v-if="checked">
+            <div class="col-4"><input v-model="driverScoreLine" type="number" placeholder="Line"></div>
+            <div class="col-4"><input v-model="driverScoreAngle" type="number" placeholder="Angle"></div>
+            <div class="col-4"><input v-model="driverScoreStyle" type="number" placeholder="Style"></div>
+        </span>
+        
     </div>
     
     <div class="row">
@@ -110,6 +135,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+    .checkbox {
+        text-align: center !important;
+        padding: 0 0 20px 0;
+    }
+    .qualiCheckbox {
+        margin-left: 10px !important;
+        width:20px !important;
+    }
     .container {
         display: flex;
         flex-direction: column;
@@ -123,6 +156,11 @@ export default {
 
             > * {
             padding-left:0px;
+            }
+
+            .col-4 {
+                float: left;
+                padding: 5px;
             }
         }
 
