@@ -18,7 +18,19 @@ export const useStore = defineStore('store', () => {
   }
 
   function sortByScore() {
-    return this.drivers.sort((a, b) => b.score.total - a.score.total)
+    return this.drivers.sort((a, b) => {
+      if (b.score.total !== a.score.total) {
+        return b.score.total - a.score.total;
+      }
+      if (b.score.line !== a.score.line) {
+        return b.score.line - a.score.line;
+      }
+      if (b.score.angle !== a.score.angle) {
+        return b.score.angle - a.score.angle;
+      }
+      return b.score.style - a.score.style;
+    });
+
   }
 
   function sortRandom() {

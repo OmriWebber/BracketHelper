@@ -131,22 +131,22 @@ export default {
           <div class="col-md-6">
             <div class="row">
               <center>
-              <div class="col-12">
-                <h3 class="driver-list-title">Driver List</h3>
-              </div>
-              <div class="controls col-12">
-                <select v-model="cutoff" name="cutoff" id="cutoff">
-                  <option value="8">Top 8</option>
-                  <option value="16">Top 16</option>
-                  <option value="32">Top 32</option>
-                </select>
-                <button class="btn btn-warning" @click="sortByScore">Sort</button>
-                <button class="btn btn-success" @click="sortRandom">Randomize</button>
-                <button class="btn btn-primary" @click="copyToClipboard">
-                  <i class="bi-clipboard"></i> Copy
-                </button>
-              </div>
-            </center>
+                <div class="col-12">
+                  <h3 class="driver-list-title">Driver List</h3>
+                </div>
+                <div class="controls col-12">
+                  <select v-model="cutoff" name="cutoff" id="cutoff">
+                    <option value="8">Top 8</option>
+                    <option value="16">Top 16</option>
+                    <option value="32">Top 32</option>
+                  </select>
+                  <button class="btn btn-warning" @click="sortByScore">Sort</button>
+                  <button class="btn btn-success" @click="sortRandom">Randomize</button>
+                  <button class="btn btn-primary" @click="copyToClipboard">
+                    <i class="bi-clipboard"></i> Copy
+                  </button>
+                </div>
+              </center>
             </div>
             <p v-if="drivers.length == 0" class="text-center" style="margin-top:30px;">No drivers added yet.</p>
             <ul class="driver-list">
