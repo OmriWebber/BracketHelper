@@ -44,7 +44,7 @@ export default {
       
       let text = ''
       for (let i = 0; i < store.drivers.length; i++) {
-        text += i+1 + ". " + store.drivers[i].name + ' - ' + store.drivers[i].score.total + '\n'
+        text += i+1 + ". " + store.drivers[i].name + ': ' + store.drivers[i].score.total + '\n'
       }
 
       try {
