@@ -1,24 +1,32 @@
-import { ref, toRaw } from 'vue'
+import { ref, toRaw, watch, nextTick } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useStore = defineStore('store', () => {
-  const drivers = ref([])
+  const drivers = ref(JSON.parse(localStorage.getItem('drivers')) || [])
   const bracket = ref([])
 
+  // Watch for changes in drivers
+  watch(drivers, (newDrivers) => {
+    nextTick(() => {
+      localStorage.setItem('drivers', JSON.stringify(newDrivers));
+    });
+  })
+
   function addDriver(driver, score) {
-    console.log(driver, score)
     this.drivers.push({
       name: driver,
       score: score
     })
+    localStorage.setItem('drivers', JSON.stringify(this.drivers));
   }
 
   function removeDriver(index) {
     this.drivers.splice(index, 1)
+    localStorage.setItem('drivers', JSON.stringify(this.drivers));
   }
 
   function sortByScore() {
-    return this.drivers.sort((a, b) => {
+    var sortedDrivers = this.drivers.sort((a, b) => {
       if (b.score.total !== a.score.total) {
         return b.score.total - a.score.total;
       }
@@ -30,15 +38,20 @@ export const useStore = defineStore('store', () => {
       }
       return b.score.style - a.score.style;
     });
+    localStorage.setItem('drivers', JSON.stringify(sortedDrivers));
+    return sortedDrivers
 
   }
 
   function sortRandom() {
-    return this.drivers.sort((a, b) => 0.5 - Math.random())
+    var sortedDrivers = this.drivers.sort((a, b) => 0.5 - Math.random())
+    localStorage.setItem('drivers', JSON.stringify(sortedDrivers));
+    return sortedDrivers
   }
 
   function clearDrivers() {
     this.drivers.splice(0);
+    localStorage.setItem('drivers', JSON.stringify(this.drivers));
   }
 
   function calculateBracket(limit) {
@@ -62,11 +75,7 @@ export const useStore = defineStore('store', () => {
     }
     console.log(this.bracket)
   }
-
-
-
   
-
   return { drivers, bracket, addDriver, removeDriver, clearDrivers, sortByScore, calculateBracket, sortRandom }
 })
 
