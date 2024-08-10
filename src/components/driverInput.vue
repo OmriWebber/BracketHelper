@@ -11,6 +11,12 @@ export default {
     components: {
         VueBasicAlert
     },
+    methods: {
+
+        addDriver() {
+            this.appendDriver()
+        }
+    },
     setup () {
         const store = useStore()
         const driverName = ref('')
@@ -110,7 +116,7 @@ export default {
 <template>
     <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
 
-    <div class="row">
+    <div class="row" @keyup.enter="addDriver">
         <div class="checkbox">
             <label class="">Qualifications</label><input class="qualiCheckbox" type="checkbox" v-model="checked">
         </div>
