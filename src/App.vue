@@ -3,7 +3,6 @@
 import { ref, toRaw } from 'vue'
 import { useStore } from '@/stores'
 import DriverInput from './components/driverInput.vue'
-import TournamentBracket from './components/TournamentBracket.vue';
 import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
 import useClipboard from 'vue-clipboard3'
@@ -13,7 +12,6 @@ export default {
   components: {
     DriverInput,
     VueBasicAlert,
-    TournamentBracket,
     Navbar
   },
 
@@ -21,12 +19,9 @@ export default {
     // Get the store
     const store = useStore()
 
-    
-
     // Create refs for the driver list, driver name, driver score, and alert
     const alert = ref()
     const cutoff = ref(16)
-    const bracket = store.bracket
     const drivers = store.drivers
     const { toClipboard } = useClipboard()
 
@@ -41,19 +36,6 @@ export default {
     const sortRandom = () => {
       store.sortRandom()
       alert.value.showAlert('success', 'Success', 'Driver List Randomised')
-
-    }
-
-    // Create and Render the bracket
-    const renderBracket = () => {
-      if (store.drivers.length < cutoff.value) {
-        alert.value.showAlert('error', 'Add more drivers.', 'Not enough drivers for a top ' + cutoff.value + ' bracket')
-        console.log("Not enough drivers for a top " + cutoff.value + " bracket")
-        return
-      }
-      
-      store.calculateBracket(cutoff.value)
-      alert.value.showAlert('success', 'Scroll down to see bracket.', 'Bracket Generated')
 
     }
 
@@ -94,7 +76,7 @@ export default {
     
 
     return {
-      drivers, sortByScore, cutoff, reset, bracket, removeDriver, alert, renderBracket, copyToClipboard, sortRandom
+      drivers, sortByScore, cutoff, reset, removeDriver, alert, copyToClipboard, sortRandom
     }
   }
 }
@@ -109,21 +91,12 @@ export default {
         <div class="row">
           <div class="col-md-6">
             <img class="herologo" src="/images/logoalt.png" alt="" width="100">
-            <p class="intro-text">
+            <p class="intro-text text-center">
               Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for your tournaments. Simply enter the driver's name and score, and the app will keep track of the scores for you!
             </p>
             <div class="container">
               <DriverInput />
-              <div class="row">
-                <div class="col-6">
-                  <button class="btn sub-btn btn-danger" @click="reset">Clear Drivers</button>
-
-                </div>
-                <div class="col-6">
-                  <button class="btn sub-btn btn-success" @click="renderBracket">Create Bracket</button>
-
-                </div>
-              </div>
+              
               
             </div>
             
@@ -159,10 +132,14 @@ export default {
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
+            <div v-if="drivers.length > 0" class="row">
+              <div class="col-6 mx-auto">
+                <button class="btn sub-btn btn-danger" @click="reset">Clear Drivers</button>
+
+              </div>
+            </div>
           </div>
         </div>
-        <TournamentBracket/>
-
       </div>
 
       <footer class="text-light text-center text-lg-start">

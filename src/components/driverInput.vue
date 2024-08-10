@@ -119,9 +119,18 @@ export default {
         </div>
         
         <span v-if="checked">
-            <div class="col-4"><input v-model="driverScoreLine" type="number" placeholder="Line"></div>
-            <div class="col-4"><input v-model="driverScoreAngle" type="number" placeholder="Angle"></div>
-            <div class="col-4"><input v-model="driverScoreStyle" type="number" placeholder="Style"></div>
+            <div class="row">
+                <div class="col-4">
+                    <input v-model="driverScoreLine" type="number" placeholder="Line">
+                </div>
+                <div class="col-4">
+                    <input v-model="driverScoreAngle" type="number" placeholder="Angle">
+                </div>
+                <div class="col-4">
+                    <input v-model="driverScoreStyle" type="number" placeholder="Style">
+                </div>
+            </div>
+            
         </span>
         
     </div>
@@ -155,18 +164,17 @@ export default {
             align-items: center;
 
             > * {
-            padding-left:0px;
+            padding-left: calc(var(--bs-gutter-x)* 0.5);
             }
 
-            .col-4 {
-                float: left;
-                padding: 5px;
+            .col {
+                width: 100%;
             }
         }
 
         input {
             width:100%;
-            margin: 0.5rem;
+            margin: 0.25rem;
             padding: 0.5rem;
             border-radius: 0.5rem;
             border: 1px solid #ccc;
@@ -174,7 +182,7 @@ export default {
 
         button {
             min-width: 100%;
-            margin: 0.5rem;
+            margin: 0.25rem;
             padding: 0.5rem;
             border-radius: 0.5rem;
             border: 1px solid #ccc;
