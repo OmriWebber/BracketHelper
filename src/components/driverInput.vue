@@ -2,29 +2,27 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { useStore } from '@/stores'
 import VueBasicAlert from 'vue-basic-alert'
-
+import axios from 'axios'
 
 export default {
     name: 'DriverInput',
     components: {
         VueBasicAlert
     },
+    emits: ['driver-added'],
     methods: {
-
         addDriver() {
             this.appendDriver()
         }
     },
-    setup () {
-        const store = useStore()
+    setup (props, { emit }) {
         const driverName = ref('')
         const driverScoreLine = ref()
         const driverScoreAngle = ref()
         const driverScoreStyle = ref()
         const alert = ref(null)
-        const checked = ref(true)
+        const selectedFile = ref(localStorage.getItem('selectedFile') || '');
 
         const appendDriver = () => {
             if (!driverName.value.trim()) {
@@ -32,15 +30,7 @@ export default {
                 return
             }
 
-            if (!checked.value) {
-                store.addDriver(
-                    driverName.value.trim(),
-                    { line: 0, angle: 0, style: 0, total: 0 }
-                )
-                alert.value.showAlert('success', 'Score: 0', driverName.value + ' added to driver list')
-                driverName.value = ''
-                return
-            }
+            let drivers = JSON.parse(localStorage.getItem('drivers')) || [];
             
             if (!isValidLineScore()) {
                 alert.value.showAlert('error', 'Please enter a valid line score (0 - 33)', 'Error')
@@ -57,28 +47,31 @@ export default {
                 return
             }
 
-            let totalScore = parseInt(driverScoreLine.value) + parseInt(driverScoreAngle.value) + parseInt(driverScoreStyle.value)
-            let driverScore = { 
-                line: driverScoreLine.value, 
-                angle:  driverScoreAngle.value, 
-                style: driverScoreStyle.value, 
-                total: totalScore
-            }
+            const newDriver = {
+                name: driverName.value.trim(),
+                score: {
+                    line: driverScoreLine.value || 0,
+                    angle: driverScoreAngle.value || 0,
+                    style: driverScoreStyle.value || 0,
+                    total: (driverScoreLine.value || 0) + (driverScoreAngle.value || 0) + (driverScoreStyle.value || 0)
+                }
+            };
 
-            store.addDriver(
-                driverName.value.trim(),
-                driverScore
-                )
-                alert.value.showAlert('success', 'Score: ' + driverScore.total, driverName.value + ' added to driver list')
+            // Add driver to list
+            drivers.push(newDriver);
+            updateFile(drivers);
 
-            driverName.value = ''
+            // Alert user that driver was added
+            alert.value.showAlert('success', `Score: ${newDriver.score.total}`, driverName.value + ' added to driver list');
             
+            // Clear input fields
+            driverName.value = '';
             driverScoreLine.value = ''
             driverScoreAngle.value = ''
             driverScoreStyle.value = ''
-            driverScoreLine.placeholder = 'Line'
-            driverScoreAngle.placeholder = 'Angle'
-            driverScoreStyle.placeholder = 'Style'
+
+            // Emit the event to notify the parent component
+            emit('driver-added');
         }
 
         const isValidLineScore = () => {
@@ -96,17 +89,27 @@ export default {
             return lineScore >= 0 && lineScore <= 33
         }
 
-        const isValid = ref(true)
+        const updateFile = (drivers) => {
+            if (selectedFile.value) {
+                axios.post('http://localhost:3000/save-drivers', {
+                    drivers,
+                    filename: selectedFile.value.replace('.json', '')
+                })
+                .then(response => {
+                    console.log('File updated successfully');
+                })
+                .catch(error => {
+                    console.error('There was an error updating the file!', error);
+                });
+            }
+        };
         
-
         return {
             driverName,
             driverScoreLine,
             driverScoreAngle,
             driverScoreStyle,
             appendDriver,
-            isValid,
-            checked,
             alert
         }
     }
@@ -117,33 +120,27 @@ export default {
     <vue-basic-alert :duration="300" :closeIn="2500" ref="alert" />
 
     <div class="row" @keyup.enter="addDriver">
-        <div class="checkbox">
-            <label class="">Qualifications</label><input class="qualiCheckbox" type="checkbox" v-model="checked">
-        </div>
         <div class="col-12">
             <input v-model="driverName" type="text" placeholder="Driver's Name"/>
         </div>
         
-        <span v-if="checked">
-            <div class="row">
-                <div class="col-4">
-                    <input v-model="driverScoreLine" type="number" placeholder="Line">
-                </div>
-                <div class="col-4">
-                    <input v-model="driverScoreAngle" type="number" placeholder="Angle">
-                </div>
-                <div class="col-4">
-                    <input v-model="driverScoreStyle" type="number" placeholder="Style">
-                </div>
+        <div class="row">
+            <div class="col-4">
+                <input v-model="driverScoreLine" type="number" placeholder="Line">
             </div>
-            
-        </span>
+            <div class="col-4">
+                <input v-model="driverScoreAngle" type="number" placeholder="Angle">
+            </div>
+            <div class="col-4">
+                <input v-model="driverScoreStyle" type="number" placeholder="Style">
+            </div>
+        </div>
         
     </div>
     
     <div class="row">
         <div class="col-12">
-            <button class="btn btn-dark" @click="appendDriver" :disabled="!isValid">Add Driver</button>
+            <button class="btn btn-dark" @click="appendDriver">Add Driver</button>
         </div>
     </div>
 

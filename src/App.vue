@@ -1,41 +1,145 @@
 <script>
 
-import { ref, toRaw } from 'vue'
-import { useStore } from '@/stores'
+import axios from 'axios';
+import { ref, toRaw, onMounted, watch, computed } from 'vue'
 import DriverInput from './components/driverInput.vue'
 import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
 import useClipboard from 'vue-clipboard3'
+import FilenameModal from './components/filenameModal.vue';
 
 export default {
   name: 'App',
   components: {
     DriverInput,
     VueBasicAlert,
-    Navbar
+    Navbar,
+    FilenameModal
   },
 
   setup () {
-    // Get the store
-    const store = useStore()
+
+    // Create refs for the new filename, selected file, and files
+    const newFilename = ref('');
+    const selectedFile = ref(localStorage.getItem('selectedFile')?.replace('.json', '') || '');
+    const files = ref([]);
+
+    // Create a ref for the modal
+    const showModal = ref(false);
 
     // Create refs for the driver list, driver name, driver score, and alert
     const alert = ref()
-    const cutoff = ref(16)
-    const drivers = store.drivers
+    const cutoff = ref(32)
+    const drivers = ref(JSON.parse(localStorage.getItem('drivers')) || []);
     const { toClipboard } = useClipboard()
 
-    // Sort the driver list by score
-    const sortByScore = () => {
-      store.sortByScore()
-      alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
+    const tournamentBracket = ref([]);
 
+
+    const selectedFileWithExtension = computed(() => {
+      return selectedFile.value ? `${selectedFile.value}.json` : '';
+    });
+    
+    onMounted(() => {
+      fetchFiles();
+      if (selectedFile.value) {
+        loadDrivers();
+      }
+    });
+
+    function fetchFiles() {
+      axios.get('http://localhost:3000/list-files')
+        .then(response => {
+          files.value = response.data.map(file => file.replace('.json', ''));
+          console.log('Files fetched!', files.value);
+        })
+        .catch(error => {
+          console.error('There was an error fetching the files!', error);
+        });
+    }
+
+    function loadDrivers() {
+      if (selectedFile.value) {
+        setTimeout(() => {
+          axios.get(`http://localhost:3000/load-drivers/${selectedFile.value.replace('.json', '')}`)
+            .then(response => {
+              console.log('Drivers loaded!', response);
+              drivers.value = response.data;
+              localStorage.setItem('drivers', JSON.stringify(drivers.value));
+            })
+            .catch(error => {
+              console.error('There was an error loading the drivers!', error);
+            });
+        }, 500); // Delay to allow the file to be created if it doesn't exist
+      }
+    }
+
+    function updateFilename() {
+      if (newFilename.value) {
+        localStorage.setItem('selectedFile', newFilename.value);
+      } else if (selectedFile.value) {
+        localStorage.setItem('selectedFile', selectedFile.value.replace('.json', ''));
+      }
+    }
+
+    function createFile(filename) {
+      axios.post('http://localhost:3000/create-file', { filename })
+        .then(response => {
+          fetchFiles();
+          selectedFile.value = filename; // Set the newly created file as the selected file without .json
+          localStorage.setItem('selectedFile', selectedFile.value); // Save the selected file to local storage without .json
+          loadDrivers(); // Load drivers for the newly selected file
+          showModal.value = false;
+          alert.value.showAlert('success', 'Success', 'File Created');
+        })
+        .catch(error => {
+          console.error('There was an error creating the file!', error);
+        });
+    }
+
+    function generateTournamentBracket() {
+      if (drivers.value && drivers.value.length > 0) {
+        console.log('Generating tournament bracket with drivers:', drivers.value);
+        // Logic to generate the tournament bracket
+        const bracket = [];
+        const totalDrivers = drivers.value.length;
+        const half = Math.ceil(totalDrivers / 2);
+        for (let i = 0; i < half; i++) {
+          bracket.push({
+            match: i + 1,
+            driver1: {
+              name: drivers.value[i].name,
+              position: i + 1
+            },
+            driver2: {
+              name: drivers.value[totalDrivers - 1 - i].name,
+              position: totalDrivers - i
+            }
+          });
+        }
+        tournamentBracket.value = bracket;
+        console.log('Tournament Bracket:', bracket);
+      } else {
+        console.error('No drivers loaded to generate the tournament bracket.');
+      }
     }
 
     // Sort the driver list by score
-    const sortRandom = () => {
-      store.sortRandom()
-      alert.value.showAlert('success', 'Success', 'Driver List Randomised')
+    const sortByScore = () => {
+      let sortedDrivers = drivers.value.sort((a, b) => {
+        if (b.score.total !== a.score.total) {
+          return b.score.total - a.score.total;
+        }
+        if (b.score.line !== a.score.line) {
+          return b.score.line - a.score.line;
+        }
+        if (b.score.angle !== a.score.angle) {
+          return b.score.angle - a.score.angle;
+        }
+        return b.score.style - a.score.style;
+      });
+      updateFile(sortedDrivers);
+      alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
 
     }
 
@@ -43,8 +147,8 @@ export default {
     const copyToClipboard = async () => {
       
       let text = ''
-      for (let i = 0; i < store.drivers.length; i++) {
-        text += i+1 + ". " + store.drivers[i].name + ': ' + store.drivers[i].score.total + '\n'
+      for (let i = 0; i < drivers.value.length; i++) {
+        text += i+1 + ". " + drivers.value[i].name + ': ' + drivers.value[i].score.total + '\n'
       }
 
       try {
@@ -61,22 +165,71 @@ export default {
 
     // Reset the driver list
     const reset = () => {
-      store.clearDrivers()
+      drivers.value.splice(0);
+      localStorage.setItem('drivers', JSON.stringify(drivers.value));
+      updateFile(drivers.value);
       alert.value.showAlert('info', 'Success', 'Reset Driver List')
 
     }
 
     // Remove a driver from the list by index and show an alert
     const removeDriver = (index) => {
-      let driverName = store.drivers[index].name
-      let driverScore = store.drivers[index].score
-      store.removeDriver(index)
-      alert.value.showAlert('error', 'Score: ' + driverScore, driverName + ' removed from driver list')
-    }
-    
+      if (index >= 0 && index < drivers.value.length) {
+        const driver = drivers.value[index];
+        if (driver) {
+          const driverName = driver.name || 'Unknown';
+          const driverScore = driver.score || { line: 0, angle: 0, style: 0, total: 0 };
+          drivers.value.splice(index, 1);
+          localStorage.setItem('drivers', JSON.stringify(drivers.value));
+          updateFile(drivers.value);
+          alert.value.showAlert('error', `Score: ${driverScore.total}`, `${driverName} removed from driver list`);
+          console.log('Driver removed!', drivers.value);
+        } else {
+          console.error('Driver at index is undefined:', index);
+        }
+      } else {
+        console.error('Invalid index:', index);
+      }
+    };
 
+    const updateFile = (drivers) => {
+      if (selectedFile.value) {
+        axios.post('http://localhost:3000/save-drivers', {
+          drivers,
+          filename: selectedFile.value.replace('.json', '')
+        })
+        .then(response => {
+          console.log('File updated successfully');
+        })
+        .catch(error => {
+          console.error('There was an error updating the file!', error);
+        });
+      }
+    };
+
+    // Watch for changes in the selected file and save it to local storage
+    watch(selectedFile, (newFile) => {
+      localStorage.setItem('selectedFile', newFile);
+      loadDrivers();
+    });
+    
     return {
-      drivers, sortByScore, cutoff, reset, removeDriver, alert, copyToClipboard, sortRandom
+      loadDrivers,
+      showModal,
+      createFile,
+      newFilename,
+      selectedFile,
+      files,
+      updateFilename,
+      drivers,
+      sortByScore,
+      cutoff,
+      reset,
+      removeDriver,
+      alert,
+      tournamentBracket,
+      generateTournamentBracket,
+      copyToClipboard
     }
   }
 }
@@ -95,9 +248,19 @@ export default {
               Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for your tournaments. Simply enter the driver's name and score, and the app will keep track of the scores for you!
             </p>
             <div class="container">
-              <DriverInput />
+              <div class="row">
+                <div class="col-7 mx-auto">
+                  <div class="row fileSelect">
+                    <select v-model="selectedFile" @change="loadDrivers" class="dropdownInput">
+                      <option v-for="file in files" :key="file" :value="file">{{ file }}</option>
+                    </select>
+                    <button class="btn btn-success" @click="showModal = true">New File</button>
+                  </div>
+                </div>
+              </div>
+              <DriverInput @driver-added="loadDrivers" />
               
-              
+
             </div>
             
           </div>
@@ -114,7 +277,7 @@ export default {
                     <option value="32">Top 32</option>
                   </select>
                   <button class="btn btn-warning" @click="sortByScore">Sort</button>
-                  <button class="btn btn-success" @click="sortRandom">Randomize</button>
+                  <button class="btn btn-info" @click="generateTournamentBracket">Generate Bracket</button>
                   <button class="btn btn-primary" @click="copyToClipboard">
                     <i class="bi-clipboard"></i> Copy
                   </button>
@@ -128,7 +291,11 @@ export default {
                 <a class="btn remove-button" @click="removeDriver(index)"><i class="bi-x-lg"></i></a>
                 <span class="orderCounter">{{ index + 1 }}</span>
                 <span class="driverName">{{ driver.name }}</span>
-                <span class="driverScore"><span class="muted" >{{ driver.score.line }} / {{ driver.score.angle }} / {{ driver.score.style }}</span> <span class="muted">Total:</span> {{ driver.score.total }}</span>
+                <span class="driverScore">
+                  <span class="muted">
+                    {{ driver.score?.line ?? 0 }} / {{ driver.score?.angle ?? 0 }} / {{ driver.score?.style ?? 0 }}
+                  </span>
+                <span class="muted"> - Total:</span> {{ driver.score?.total ?? 0 }}</span>
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
@@ -140,6 +307,36 @@ export default {
             </div>
           </div>
         </div>
+
+        <div class="tournamentBracket" v-if="tournamentBracket.length > 0">
+          <h2 class="bracket-title">Tournament Bracket</h2>
+          <div class="bracket-container">
+            <div class="bracket-side">
+              <ul class="bracket-list">
+                <li v-for="match in tournamentBracket.slice(0, Math.ceil(tournamentBracket.length / 2))" :key="match.match" class="bracket-item">
+                  <span class="match-number">Match {{ match.match }}:</span>
+                  <span class="driver-name">
+                    {{ match.driver1.position }}. {{ match.driver1.name }} vs 
+                    {{ match.driver2.position }}. {{ match.driver2.name }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <div class="bracket-side">
+              <ul class="bracket-list">
+                <li v-for="match in tournamentBracket.slice(Math.ceil(tournamentBracket.length / 2))" :key="match.match" class="bracket-item">
+                  <span class="match-number">Heat {{ match.match }}:</span>
+                  <span class="driver-name">
+                    {{ match.driver1.position }}. {{ match.driver1.name }} vs 
+                    {{ match.driver2.position }}. {{ match.driver2.name }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        
       </div>
 
       <footer class="text-light text-center text-lg-start">
@@ -152,7 +349,7 @@ export default {
       </footer>
     </main>
     
-
+    <FilenameModal :show="showModal" @close="showModal = false" @submit="createFile" />
 </template>
 
 <style scoped>
@@ -161,6 +358,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 footer {
@@ -195,6 +393,74 @@ footer {
 
 .cutoff-line:not(:empty)::before {
   margin-right: .25em;
+}
+
+.fileSelect {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+
+  select {
+    width: 100%;
+    margin-right: 10px;
+  }
+
+  button {
+    width: 50%;
+  }
+}
+
+.tournamentBracket {
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
+.bracket-title {
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 20px;
+  color: #333;
+}
+
+.bracket-container {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.bracket-side {
+  width: 45%;
+}
+
+.bracket-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bracket-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px 20px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.match-number {
+  font-weight: bold;
+  color: #555;
+}
+
+.driver-name {
+  font-size: 18px;
+  color: #222;
 }
 
 .separator:not(:empty)::after {
@@ -245,7 +511,7 @@ footer {
     background-color: rgba(184, 184, 184, 0.493);
   }
 
-  #cutoff {
+  #cutoff, .dropdownInput {
     vertical-align: middle;
     padding: 8px;
     height: 40px;
