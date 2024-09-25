@@ -7,7 +7,7 @@ const port = 3000;
 app.use(cors()); // Enable CORS
 app.use(express.json());
 
-app.post('/save-drivers', (req, res) => {
+app.post('/api/save-drivers', (req, res) => {
   const { drivers, filename } = req.body;
   fs.writeFile(`${filename}.json`, JSON.stringify(drivers), (err) => {
     if (err) {
@@ -18,7 +18,7 @@ app.post('/save-drivers', (req, res) => {
   });
 });
 
-app.get('/list-files', (req, res) => {
+app.get('/api/list-files', (req, res) => {
   fs.readdir('.', (err, files) => {
     if (err) {
       res.status(500).send('Failed to list files');
@@ -29,7 +29,7 @@ app.get('/list-files', (req, res) => {
   });
 });
 
-app.get('/load-drivers/:filename', (req, res) => {
+app.get('/api/load-drivers/:filename', (req, res) => {
   const filename = req.params.filename;
   fs.readFile(`${filename}.json`, 'utf8', (err, data) => {
     if (err) {
@@ -45,7 +45,7 @@ app.get('/load-drivers/:filename', (req, res) => {
   });
 });
 
-app.post('/create-file', (req, res) => {
+app.post('/api/create-file', (req, res) => {
   const { filename } = req.body;
   fs.writeFile(`${filename}.json`, '[]', (err) => {
     if (err) {

@@ -35,6 +35,9 @@ export default {
 
     const tournamentBracket = ref([]);
 
+    const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+
+    console.log('Backend URL:', backendUrl);
 
     const selectedFileWithExtension = computed(() => {
       return selectedFile.value ? `${selectedFile.value}.json` : '';
@@ -48,9 +51,10 @@ export default {
     });
 
     function fetchFiles() {
-      axios.get('http://localhost:3000/list-files')
+      axios.get(`${backendUrl}/list-files`)
         .then(response => {
-          files.value = response.data.map(file => file.replace('.json', ''));
+          console.log(response.data);
+          files.value = response.data.files.blobs.map(file => file.replace('.json', ''));
           console.log('Files fetched!', files.value);
         })
         .catch(error => {
@@ -61,7 +65,7 @@ export default {
     function loadDrivers() {
       if (selectedFile.value) {
         setTimeout(() => {
-          axios.get(`http://localhost:3000/load-drivers/${selectedFile.value.replace('.json', '')}`)
+          axios.get(`${backendUrl}/load-drivers/${selectedFile.value.replace('.json', '')}`)
             .then(response => {
               console.log('Drivers loaded!', response);
               drivers.value = response.data;
@@ -83,7 +87,7 @@ export default {
     }
 
     function createFile(filename) {
-      axios.post('http://localhost:3000/create-file', { filename })
+      axios.post(`${backendUrl}/create-file`, { filename })
         .then(response => {
           fetchFiles();
           selectedFile.value = filename; // Set the newly created file as the selected file without .json
@@ -194,7 +198,7 @@ export default {
 
     const updateFile = (drivers) => {
       if (selectedFile.value) {
-        axios.post('http://localhost:3000/save-drivers', {
+        axios.post(`${backendUrl}/save-drivers`, {
           drivers,
           filename: selectedFile.value.replace('.json', '')
         })
