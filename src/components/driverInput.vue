@@ -5,6 +5,7 @@ import { ref, onMounted } from 'vue'
 import VueBasicAlert from 'vue-basic-alert'
 import axios from 'axios'
 
+
 export default {
     name: 'DriverInput',
     components: {
@@ -23,6 +24,8 @@ export default {
         const driverScoreStyle = ref()
         const alert = ref(null)
         const selectedFile = ref(localStorage.getItem('selectedFile') || '');
+
+        const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
 
         const appendDriver = () => {
             if (!driverName.value.trim()) {
@@ -58,7 +61,9 @@ export default {
             };
 
             // Add driver to list
+            console.log(newDriver)
             drivers.push(newDriver);
+            console.log(drivers);
             updateFile(drivers);
 
             // Alert user that driver was added
@@ -71,7 +76,6 @@ export default {
             driverScoreStyle.value = ''
 
             // Emit the event to notify the parent component
-            emit('driver-added');
         }
 
         const isValidLineScore = () => {
@@ -91,12 +95,16 @@ export default {
 
         const updateFile = (drivers) => {
             if (selectedFile.value) {
-                axios.post('http://localhost:3000/save-drivers', {
+                const file = localStorage.getItem('selectedFile')
+                console.log(file, "Drivers: ", drivers);
+                axios.post(`${backendUrl}/save-drivers`, {
                     drivers,
-                    filename: selectedFile.value.replace('.json', '')
+                    filename: selectedFile.value,
                 })
                 .then(response => {
-                    console.log('File updated successfully');
+                    console.log('File updated successfully', response.data.putResponse);
+                    emit('driver-added');
+
                 })
                 .catch(error => {
                     console.error('There was an error updating the file!', error);

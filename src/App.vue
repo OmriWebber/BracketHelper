@@ -1,7 +1,7 @@
 <script>
 
 import axios from 'axios';
-import { ref, toRaw, onMounted, watch, computed } from 'vue'
+import { ref, toRaw, onMounted, onUnmounted, watch, computed } from 'vue'
 import DriverInput from './components/driverInput.vue'
 import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
@@ -21,7 +21,7 @@ export default {
 
     // Create refs for the new filename, selected file, and files
     const newFilename = ref('');
-    const selectedFile = ref(localStorage.getItem('selectedFile')?.replace('.json', '') || '');
+    const selectedFile = ref(localStorage.getItem('selectedFile'));
     const files = ref([]);
 
     // Create a ref for the modal
@@ -32,17 +32,9 @@ export default {
     const cutoff = ref(32)
     const drivers = ref(JSON.parse(localStorage.getItem('drivers')) || []);
     const { toClipboard } = useClipboard()
-
     const tournamentBracket = ref([]);
-
     const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
 
-    console.log('Backend URL:', backendUrl);
-
-    const selectedFileWithExtension = computed(() => {
-      return selectedFile.value ? `${selectedFile.value}.json` : '';
-    });
-    
     onMounted(() => {
       fetchFiles();
       if (selectedFile.value) {
@@ -50,11 +42,10 @@ export default {
       }
     });
 
-    function fetchFiles() {
+    async function fetchFiles() {
       axios.get(`${backendUrl}/list-files`)
         .then(response => {
-          console.log(response.data);
-          files.value = response.data.files.blobs.map(file => file.replace('.json', ''));
+          files.value = response.data.files.blobs;
           console.log('Files fetched!', files.value);
         })
         .catch(error => {
@@ -62,14 +53,16 @@ export default {
         });
     }
 
-    function loadDrivers() {
+    async function loadDrivers() {
       if (selectedFile.value) {
+        const filename = selectedFile.value.url;
+        console.log(filename)
         setTimeout(() => {
-          axios.get(`${backendUrl}/load-drivers/${selectedFile.value.replace('.json', '')}`)
+          axios.get(`${backendUrl}/load-drivers?filename=${filename}`)
             .then(response => {
-              console.log('Drivers loaded!', response);
-              drivers.value = response.data;
-              localStorage.setItem('drivers', JSON.stringify(drivers.value));
+              drivers.value = response.data.drivers;
+              localStorage.setItem('drivers', JSON.stringify(response.data.drivers))
+              console.log('Drivers loaded!', drivers.value);
             })
             .catch(error => {
               console.error('There was an error loading the drivers!', error);
@@ -78,23 +71,17 @@ export default {
       }
     }
 
-    function updateFilename() {
-      if (newFilename.value) {
-        localStorage.setItem('selectedFile', newFilename.value);
-      } else if (selectedFile.value) {
-        localStorage.setItem('selectedFile', selectedFile.value.replace('.json', ''));
-      }
-    }
-
     function createFile(filename) {
-      axios.post(`${backendUrl}/create-file`, { filename })
+      const drivers = [];
+      filename = filename + '.json'
+      console.log(filename, drivers)
+      axios.post(`${backendUrl}/create-file`, { filename , drivers })
         .then(response => {
           fetchFiles();
-          selectedFile.value = filename; // Set the newly created file as the selected file without .json
-          localStorage.setItem('selectedFile', selectedFile.value); // Save the selected file to local storage without .json
+          localStorage.setItem('selectedFile', filename); // Save the selected file to local storage without .json
           loadDrivers(); // Load drivers for the newly selected file
           showModal.value = false;
-          alert.value.showAlert('success', 'Success', 'File Created');
+          alert.value.showAlert('success', 'Success', `File Created ${filename}`);
         })
         .catch(error => {
           console.error('There was an error creating the file!', error);
@@ -143,6 +130,7 @@ export default {
         return b.score.style - a.score.style;
       });
       updateFile(sortedDrivers);
+      localStorage.setItem('drivers', JSON.stringify(sortedDrivers));
       alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
 
     }
@@ -167,15 +155,6 @@ export default {
       }
     }
 
-    // Reset the driver list
-    const reset = () => {
-      drivers.value.splice(0);
-      localStorage.setItem('drivers', JSON.stringify(drivers.value));
-      updateFile(drivers.value);
-      alert.value.showAlert('info', 'Success', 'Reset Driver List')
-
-    }
-
     // Remove a driver from the list by index and show an alert
     const removeDriver = (index) => {
       if (index >= 0 && index < drivers.value.length) {
@@ -197,10 +176,11 @@ export default {
     };
 
     const updateFile = (drivers) => {
-      if (selectedFile.value) {
+      console.log('Updating file:', selectedFile.value);
+      if (selectedFile) {
         axios.post(`${backendUrl}/save-drivers`, {
           drivers,
-          filename: selectedFile.value.replace('.json', '')
+          filename: selectedFile.value.pathname
         })
         .then(response => {
           console.log('File updated successfully');
@@ -213,7 +193,8 @@ export default {
 
     // Watch for changes in the selected file and save it to local storage
     watch(selectedFile, (newFile) => {
-      localStorage.setItem('selectedFile', newFile);
+      console.log('Selected file changed:', newFile.pathname);
+      localStorage.setItem('selectedFile', newFile.pathname);
       loadDrivers();
     });
     
@@ -224,11 +205,9 @@ export default {
       newFilename,
       selectedFile,
       files,
-      updateFilename,
       drivers,
       sortByScore,
       cutoff,
-      reset,
       removeDriver,
       alert,
       tournamentBracket,
@@ -255,8 +234,8 @@ export default {
               <div class="row">
                 <div class="col-7 mx-auto">
                   <div class="row fileSelect">
-                    <select v-model="selectedFile" @change="loadDrivers" class="dropdownInput">
-                      <option v-for="file in files" :key="file" :value="file">{{ file }}</option>
+                    <select v-model="selectedFile" class="dropdownInput">
+                      <option v-for="file in files" :key="file" :value="file">{{ file.pathname }}</option>
                     </select>
                     <button class="btn btn-success" @click="showModal = true">New File</button>
                   </div>
@@ -270,7 +249,6 @@ export default {
           </div>
           <div class="col-md-6">
             <div class="row">
-              <center>
                 <div class="col-12">
                   <h3 class="driver-list-title">Driver List</h3>
                 </div>
@@ -286,7 +264,6 @@ export default {
                     <i class="bi-clipboard"></i> Copy
                   </button>
                 </div>
-              </center>
             </div>
             <p v-if="drivers.length == 0" class="text-center" style="margin-top:30px;">No drivers added yet.</p>
             <ul class="driver-list">
@@ -303,12 +280,6 @@ export default {
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
-            <div v-if="drivers.length > 0" class="row">
-              <div class="col-6 mx-auto">
-                <button class="btn sub-btn btn-danger" @click="reset">Clear Drivers</button>
-
-              </div>
-            </div>
           </div>
         </div>
 
