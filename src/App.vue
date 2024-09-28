@@ -7,6 +7,7 @@ import Navbar from './components/Navbar.vue'
 import VueBasicAlert from 'vue-basic-alert'
 import useClipboard from 'vue-clipboard3'
 import FilenameModal from './components/filenameModal.vue';
+import PasswordModal from './components/passwordModal.vue';
 
 export default {
   name: 'App',
@@ -14,10 +15,12 @@ export default {
     DriverInput,
     VueBasicAlert,
     Navbar,
-    FilenameModal
+    FilenameModal,
+    PasswordModal
   },
 
   setup () {
+    const authenticated = ref(false); // Add a ref to track authentication status
 
     // Create refs for the new filename, selected file, and files
     const newFilename = ref('');
@@ -199,6 +202,7 @@ export default {
     });
     
     return {
+      authenticated,
       loadDrivers,
       showModal,
       createFile,
@@ -223,8 +227,10 @@ export default {
 
     <Navbar />
     <main>
+      
       <div class="container">
-        <div class="row">
+        <PasswordModal :show="!authenticated" @authenticated="authenticated = true" />
+        <div class="row" v-if="authenticated">
           <div class="col-md-6">
             <img class="herologo" src="/images/logoalt.png" alt="" width="100">
             <p class="intro-text text-center">
