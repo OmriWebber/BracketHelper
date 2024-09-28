@@ -99,7 +99,7 @@ export default {
                 console.log(file, "Drivers: ", drivers);
                 axios.post(`${backendUrl}/save-drivers`, {
                     drivers,
-                    filename: selectedFile.value,
+                    filename: file,
                 })
                 .then(response => {
                     console.log('File updated successfully', response.data.putResponse);

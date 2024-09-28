@@ -234,7 +234,7 @@ export default {
           <div class="col-md-6">
             <img class="herologo" src="/images/logoalt.png" alt="" width="100">
             <p class="intro-text text-center">
-              Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for your tournaments. Simply enter the driver's name and score, and the app will keep track of the scores for you!
+              Welcome to Bracket Helper! This app is designed to help you keep track of your bracket scores for tournaments. Simply select an existing file or create a new file to start entering in driver names and scores. The app will then keep track of the scores for you and display them on the FDE website.
             </p>
             <div class="container">
               <div class="row">
