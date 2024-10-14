@@ -66,6 +66,7 @@ export default {
               drivers.value = response.data.drivers;
               localStorage.setItem('drivers', JSON.stringify(response.data.drivers))
               console.log('Drivers loaded!', drivers.value);
+              sortByScore();
             })
             .catch(error => {
               console.error('There was an error loading the drivers!', error);
