@@ -31,12 +31,13 @@
             const hashedPassword = '$2b$10$DT.ldA3Ib0HDzuZx.TB2fefFn6VCXe725Lj8VXhhw9wjqsu9KUoTK'; // Replace with your hashed password
             bcrypt.compare(this.password, hashedPassword, (err, result) => {
                 if (err) {
-                console.error('Error comparing password:', err);
-                this.error = 'An error occurred. Please try again.';
+                  console.error('Error comparing password:', err);
+                  this.error = 'An error occurred. Please try again.';
                 } else if (result) {
-                this.$emit('authenticated');
+                  localStorage.setItem('authenticated', 'true'); // Save login state to localStorage
+                  this.$emit('authenticated');
                 } else {
-                this.error = 'Incorrect password. Please try again.';
+                  this.error = 'Incorrect password. Please try again.';
                 }
             });
             }

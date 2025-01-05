@@ -37,8 +37,14 @@ export default {
     const { toClipboard } = useClipboard()
     const tournamentBracket = ref([]);
     const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+    // const backendUrl = 'http://localhost:4000';
 
     onMounted(() => {
+      // Check if the user is already authenticated
+      if (localStorage.getItem('authenticated') === 'true') {
+        authenticated.value = true;
+      }
+
       fetchFiles();
       if (selectedFile.value) {
         loadDrivers();
@@ -77,9 +83,9 @@ export default {
 
     function createFile(filename) {
       const drivers = [];
-      filename = filename + '.json'
-      console.log(filename, drivers)
-      axios.post(`${backendUrl}/create-file`, { filename , drivers })
+      filename = filename + '.json';
+      const file = {filename, drivers};
+      axios.post(`${backendUrl}/create-file`, file)
         .then(response => {
           fetchFiles();
           localStorage.setItem('selectedFile', filename); // Save the selected file to local storage without .json
