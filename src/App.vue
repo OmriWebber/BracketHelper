@@ -101,11 +101,13 @@ export default {
     function generateTournamentBracket() {
       if (drivers.value && drivers.value.length > 0) {
         console.log('Generating tournament bracket with drivers:', drivers.value);
-        // Logic to generate the tournament bracket
         const bracket = [];
         const totalDrivers = drivers.value.length;
-        const half = Math.ceil(totalDrivers / 2);
-        for (let i = 0; i < half; i++) {
+        const numByes = Math.max(0, cutoff.value - totalDrivers);
+        const numMatches = Math.ceil(cutoff.value / 2);
+
+        // Add byes
+        for (let i = 0; i < numByes; i++) {
           bracket.push({
             match: i + 1,
             driver1: {
@@ -113,11 +115,27 @@ export default {
               position: i + 1
             },
             driver2: {
-              name: drivers.value[totalDrivers - 1 - i].name,
-              position: totalDrivers - i
+              name: 'BYE RUN',
+              position: null
             }
           });
         }
+
+        // Add matches
+        for (let i = numByes; i < numMatches; i++) {
+          bracket.push({
+            match: i + 1,
+            driver1: {
+              name: drivers.value[i].name,
+              position: i + 1
+            },
+            driver2: {
+              name: drivers.value[totalDrivers - 1 - (i - numByes)].name,
+              position: totalDrivers - (i - numByes)
+            }
+          });
+        }
+
         tournamentBracket.value = bracket;
         console.log('Tournament Bracket:', bracket);
       } else {
