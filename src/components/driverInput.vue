@@ -61,9 +61,7 @@ export default {
             };
 
             // Add driver to list
-            console.log(newDriver)
             drivers.push(newDriver);
-            console.log(drivers);
             updateFile(drivers);
 
             // Alert user that driver was added
@@ -96,15 +94,12 @@ export default {
         const updateFile = (drivers) => {
             if (selectedFile.value) {
                 const file = localStorage.getItem('selectedFile')
-                console.log(file, "Drivers: ", drivers);
                 axios.post(`${backendUrl}/save-drivers`, {
                     drivers,
                     filename: file,
                 })
                 .then(response => {
-                    console.log('File updated successfully', response.data.putResponse);
                     emit('driver-added');
-
                 })
                 .catch(error => {
                     console.error('There was an error updating the file!', error);

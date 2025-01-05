@@ -37,7 +37,6 @@ export default {
     const { toClipboard } = useClipboard()
     const tournamentBracket = ref([]);
     const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
-    // const backendUrl = 'http://localhost:4000';
 
     onMounted(() => {
       // Check if the user is already authenticated
@@ -55,7 +54,6 @@ export default {
       axios.get(`${backendUrl}/list-files`)
         .then(response => {
           files.value = response.data.files.blobs;
-          console.log('Files fetched!', files.value);
         })
         .catch(error => {
           console.error('There was an error fetching the files!', error);
@@ -65,13 +63,14 @@ export default {
     async function loadDrivers() {
       if (selectedFile.value) {
         const filename = selectedFile.value.url;
-        console.log(filename)
+        if(filename === undefined) {
+          return;
+        }
         setTimeout(() => {
           axios.get(`${backendUrl}/load-drivers?filename=${filename}`)
             .then(response => {
               drivers.value = response.data.drivers;
               localStorage.setItem('drivers', JSON.stringify(response.data.drivers))
-              console.log('Drivers loaded!', drivers.value);
               sortByScore();
             })
             .catch(error => {
@@ -100,7 +99,6 @@ export default {
 
     function generateTournamentBracket() {
       if (drivers.value && drivers.value.length > 0) {
-        console.log('Generating tournament bracket with drivers:', drivers.value);
         const bracket = [];
         const totalDrivers = drivers.value.length;
         const numByes = Math.max(0, cutoff.value - totalDrivers);
@@ -137,7 +135,7 @@ export default {
         }
 
         tournamentBracket.value = bracket;
-        console.log('Tournament Bracket:', bracket);
+        alert.value.showAlert('success', 'Scroll down to view bracket', `Bracket generated for top ${cutoff.value}`);
       } else {
         console.error('No drivers loaded to generate the tournament bracket.');
       }
@@ -159,8 +157,6 @@ export default {
       });
       updateFile(sortedDrivers);
       localStorage.setItem('drivers', JSON.stringify(sortedDrivers));
-      alert.value.showAlert('warning', 'Highest to Lowest', 'Driver List Sorted')
-
     }
 
     // Copy to Clipboard
@@ -173,7 +169,6 @@ export default {
 
       try {
         await toClipboard(text)
-        console.log('Copied to clipboard')
         alert.value.showAlert('success', 'Copied to Clipboard', 'Driver List Successfully Copied')
 
       } catch (e) {
@@ -194,7 +189,6 @@ export default {
           localStorage.setItem('drivers', JSON.stringify(drivers.value));
           updateFile(drivers.value);
           alert.value.showAlert('error', `Score: ${driverScore.total}`, `${driverName} removed from driver list`);
-          console.log('Driver removed!', drivers.value);
         } else {
           console.error('Driver at index is undefined:', index);
         }
@@ -204,14 +198,12 @@ export default {
     };
 
     const updateFile = (drivers) => {
-      console.log('Updating file:', selectedFile.value);
       if (selectedFile) {
         axios.post(`${backendUrl}/save-drivers`, {
           drivers,
           filename: selectedFile.value.pathname
         })
         .then(response => {
-          console.log('File updated successfully');
         })
         .catch(error => {
           console.error('There was an error updating the file!', error);
@@ -221,7 +213,7 @@ export default {
 
     // Watch for changes in the selected file and save it to local storage
     watch(selectedFile, (newFile) => {
-      console.log('Selected file changed:', newFile.pathname);
+      alert.value.showAlert('success', 'Changed selected file, loading drivers..', 'File changed to ' + newFile.pathname);
       localStorage.setItem('selectedFile', newFile.pathname);
       loadDrivers();
     });
@@ -289,11 +281,12 @@ export default {
                     <option value="16">Top 16</option>
                     <option value="32">Top 32</option>
                   </select>
-                  <button class="btn btn-warning" @click="sortByScore">Sort</button>
-                  <button class="btn btn-info" @click="generateTournamentBracket">Generate Bracket</button>
-                  <button class="btn btn-primary" @click="copyToClipboard">
-                    <i class="bi-clipboard"></i> Copy
-                  </button>
+                  <div>
+                    <button class="btn btn-info" @click="generateTournamentBracket">Generate Bracket</button>
+                    <button class="btn btn-primary" style="margin-right: 0px;" @click="copyToClipboard">
+                      <i class="bi-clipboard"></i> Copy
+                    </button>
+                  </div>
                 </div>
             </div>
             <p v-if="drivers.length == 0" class="text-center" style="margin-top:30px;">No drivers added yet.</p>
@@ -365,6 +358,7 @@ export default {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
+  padding: 0px;
 }
 
 footer {
@@ -522,7 +516,7 @@ footer {
     padding: 8px;
     height: 40px;
     border-radius: 5px;
-    margin: 10px 10px;
+    margin: 10px 0px;
   }
 
   .sub-btn {
