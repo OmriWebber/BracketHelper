@@ -22,22 +22,28 @@
       <div class="bracket-export-button-container">
         <button class="copy" @click="copyBracketDataToClipboard">Copy Bracket Data</button>
         <button class="export" @click="exportBracketImage">Export Bracket Image</button>
+        <button class="url" @click="saveBracketImageToURL">Save Image to Custom Static URL</button>
       </div>
 
+      
     </div>
     
   </div>
+  <saveBracketImageModal :show="showModal" :outputUrl="outputUrl" @close="showModal = false" @save="saveImageWithFileName"></saveBracketImageModal>
 </template>
 
 <script>
 import { ref, toRaw, onMounted, onUnmounted, onUpdated, watch, computed } from 'vue'
 import axios from 'axios';
 import VueBasicAlert from 'vue-basic-alert'
+import saveBracketImageModal from './saveBracketImageModal.vue'
+
 
 export default {
   name: 'BracketComponent',
   components: {
     VueBasicAlert,
+    saveBracketImageModal,
   },
   props: {
     bracket: {
@@ -57,6 +63,8 @@ export default {
         zIndex: '100',
       },
       hoveredDriver: null,
+      showModal: false,
+      outputUrl: '',
     };
   },
   methods: {
@@ -66,8 +74,6 @@ export default {
     drawBracket() {
       if(this.bracket) {
         const localBracket = JSON.parse(localStorage.getItem('bracket'));
-        console.log(localBracket);
-
 
         const canvas = document.getElementById('bracketCanvas');
         const ctx = canvas.getContext('2d');
@@ -238,6 +244,8 @@ export default {
 
           });
           ctx.font = 'italic 50px FutureEarth';
+          ctx.fillStyle = 'white';
+
           ctx.fillText(this.bracket.round, canvas.width / 2, (canvas.height / 2) + 12);
 
           let top16 = this.bracket.top16;
@@ -739,8 +747,30 @@ export default {
       link.download = 'bracket.png';
       link.href = image;
       link.click();
-    }
-    
+    },
+
+    saveBracketImageToURL() {
+      this.showModal = true;
+      this.outputUrl = '';
+    },
+    async saveImageWithFileName(fileName) {
+      const canvas = document.getElementById('bracketCanvas');
+      const image = canvas.toDataURL('image/png');
+      const imageData = image.replace(/^data:image\/\w+;base64,/, '');
+
+      const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+      try {
+        const response = await axios.post(`${backendUrl}/save-bracket-image-to-url`, {
+          image: imageData,
+          fileName: fileName,
+        });
+        this.outputUrl = response.data.url; // Assuming the response contains the URL
+        this.$refs.alert.showAlert('success', 'Bracket image saved with filename!', 'Success');
+      } catch (error) {
+        this.$refs.alert.showAlert('fail', 'Error saving bracket image with filename', 'Fail');
+        console.error('There was an error saving the bracket image with filename!', error);
+      }
+    },
 
   },
   mounted() {
@@ -871,7 +901,7 @@ export default {
       font-family: 'Montserrat', sans-serif;
       padding: 4px 12px;
       background-color: #009d47;
-      color:white;
+      color:black;
       border: 1px solid #212121;
       border-radius: 4px;
       font-weight: 500;
@@ -888,7 +918,7 @@ export default {
       font-family: 'Montserrat', sans-serif;
       padding: 4px 12px;
       background-color: #0080ff;
-      color:white;
+      color:black;
       border: 1px solid #212121;
       border-radius: 4px;
       font-weight: 500;
@@ -897,6 +927,23 @@ export default {
 
       &:hover {
         background-color: #0065ca;
+      }
+    }
+
+    button.url {
+      /* text-transform: uppercase; */
+      font-family: 'Montserrat', sans-serif;
+      padding: 4px 12px;
+      background-color: #ff9500;
+      color:black;
+      border: 1px solid #212121;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: background-color 0.2s;
+
+      &:hover {
+        background-color: #ca7d00;
       }
     }
   }
