@@ -784,7 +784,6 @@ export default {
 
     async setActiveBattle() {
       if (this.hoveredDriver) {
-        this.activeBattle.lead = this.hoveredDriver;
         const opponentOrder = (this.hoveredDriver.round + 1) - this.hoveredDriver.order;
         let opponent;
         switch (this.hoveredDriver.round) {
@@ -804,10 +803,12 @@ export default {
             opponent = this.bracket.top2.find(driver => driver.order === opponentOrder);
             break;
         }
-        this.activeBattle.chase = opponent;
-        this.activeBattle.round = this.hoveredDriver.round;
 
-        await this.drawActiveBattle();
+        this.activeBattle.lead = await this.hoveredDriver;
+        this.activeBattle.chase = await opponent;
+        this.activeBattle.round = await this.hoveredDriver.round;
+
+        this.drawActiveBattle();
         this.showButton = false;
         this.$refs.alert.showAlert('success', `Lead Driver ${this.hoveredDriver.name} vs Chase Driver ${opponent.name} set as active battle!`, 'Success');
       }
