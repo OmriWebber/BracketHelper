@@ -782,7 +782,7 @@ export default {
       }
     },
 
-    async setActiveBattle() {
+    setActiveBattle() {
       if (this.hoveredDriver) {
         const opponentOrder = (this.hoveredDriver.round + 1) - this.hoveredDriver.order;
         let opponent;
@@ -804,9 +804,9 @@ export default {
             break;
         }
 
-        this.activeBattle.lead = await this.hoveredDriver;
-        this.activeBattle.chase = await opponent;
-        this.activeBattle.round = await this.hoveredDriver.round;
+        this.activeBattle.lead = this.hoveredDriver;
+        this.activeBattle.chase = opponent;
+        this.activeBattle.round = this.hoveredDriver.round;
 
         this.drawActiveBattle();
         this.showButton = false;
@@ -848,8 +848,9 @@ export default {
         const chaseDriverText = `${this.activeBattle.chase.name}`;
         ctx.fillText(leadDriverText.toUpperCase(), xPositionLead, yPositionLead);
         ctx.fillText(chaseDriverText.toUpperCase(), xPositionChase, yPositionChase);
+
+        this.saveActiveBattleImage();
       };
-      this.saveActiveBattleImage();
     },
 
     saveActiveBattleImage() {
