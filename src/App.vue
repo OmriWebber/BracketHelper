@@ -8,6 +8,7 @@ import VueBasicAlert from 'vue-basic-alert'
 import useClipboard from 'vue-clipboard3'
 import FilenameModal from './components/filenameModal.vue';
 import PasswordModal from './components/passwordModal.vue';
+import BracketComponent from './components/TournamentBracket.vue';
 
 export default {
   name: 'App',
@@ -16,9 +17,9 @@ export default {
     VueBasicAlert,
     Navbar,
     FilenameModal,
-    PasswordModal
+    PasswordModal,
+    BracketComponent
   },
-
   setup () {
     const authenticated = ref(false); // Add a ref to track authentication status
 
@@ -53,7 +54,7 @@ export default {
     async function fetchFiles() {
       axios.get(`${backendUrl}/list-files`)
         .then(response => {
-          files.value = response.data.files.blobs;
+          files.value = response.data.files.blobs.filter(file => file.pathname.endsWith('.json'));
         })
         .catch(error => {
           console.error('There was an error fetching the files!', error);
@@ -99,40 +100,34 @@ export default {
 
     function generateTournamentBracket() {
       if (drivers.value && drivers.value.length > 0) {
-        const bracket = [];
+        let roundName = selectedFile.value.pathname || '';
+        
+        console.log(roundName)
+        const bracket = {
+          round: roundName.split('.')[0],
+          top32: [],
+          top16: [],
+          top8: [],
+          top4: [],
+          top2: [],
+          podium: [],
+        };
         const totalDrivers = drivers.value.length;
         const numByes = Math.max(0, cutoff.value - totalDrivers);
-        const numMatches = Math.ceil(cutoff.value / 2);
-
-        // Add byes
-        for (let i = 0; i < numByes; i++) {
-          bracket.push({
-            match: i + 1,
-            driver1: {
-              name: drivers.value[i].name,
-              position: i + 1
-            },
-            driver2: {
-              name: 'BYE RUN',
-              position: null
-            }
-          });
-        }
 
         // Add matches
-        for (let i = numByes; i < numMatches; i++) {
-          bracket.push({
-            match: i + 1,
-            driver1: {
-              name: drivers.value[i].name,
-              position: i + 1
-            },
-            driver2: {
-              name: drivers.value[totalDrivers - 1 - (i - numByes)].name,
-              position: totalDrivers - (i - numByes)
-            }
-          });
+        for (let i = 0; i < cutoff.value; i++) {
+          if (i < totalDrivers) {
+            bracket.top32.push({
+                name: drivers.value[i].name,
+            });
+          } else {
+            bracket.top32.push({
+                name: 'BYE RUN'
+            });
+          }
         }
+
 
         tournamentBracket.value = bracket;
         alert.value.showAlert('success', 'Scroll down to view bracket', `Bracket generated for top ${cutoff.value}`);
@@ -306,36 +301,7 @@ export default {
             </ul>
           </div>
         </div>
-
-        <div class="tournamentBracket" v-if="tournamentBracket.length > 0">
-          <h2 class="bracket-title">Tournament Bracket</h2>
-          <div class="bracket-container">
-            <div class="bracket-side">
-              <ul class="bracket-list">
-                <li v-for="match in tournamentBracket.slice(0, Math.ceil(tournamentBracket.length / 2))" :key="match.match" class="bracket-item">
-                  <span class="match-number">Match {{ match.match }}:</span>
-                  <span class="driver-name">
-                    {{ match.driver1.position }}. {{ match.driver1.name }} vs 
-                    {{ match.driver2.position }}. {{ match.driver2.name }}
-                  </span>
-                </li>
-              </ul>
-            </div>
-            <div class="bracket-side">
-              <ul class="bracket-list">
-                <li v-for="match in tournamentBracket.slice(Math.ceil(tournamentBracket.length / 2))" :key="match.match" class="bracket-item">
-                  <span class="match-number">Heat {{ match.match }}:</span>
-                  <span class="driver-name">
-                    {{ match.driver1.position }}. {{ match.driver1.name }} vs 
-                    {{ match.driver2.position }}. {{ match.driver2.name }}
-                  </span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        
+        <BracketComponent :bracket="tournamentBracket" />
       </div>
 
       <footer class="text-light text-center text-lg-start">
@@ -412,57 +378,6 @@ footer {
   }
 }
 
-.tournamentBracket {
-  padding-top: 40px;
-  padding-bottom: 80px;
-}
-
-.bracket-title {
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 20px;
-  color: #333;
-}
-
-.bracket-container {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-
-.bracket-side {
-  width: 45%;
-}
-
-.bracket-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.bracket-item {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px 20px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.match-number {
-  font-weight: bold;
-  color: #555;
-}
-
-.driver-name {
-  font-size: 18px;
-  color: #222;
-}
-
 .separator:not(:empty)::after {
   margin-left: .25em;
 }
@@ -518,6 +433,8 @@ footer {
     border-radius: 5px;
     margin: 10px 0px;
   }
+
+  
 
   .sub-btn {
     padding: 7px;
