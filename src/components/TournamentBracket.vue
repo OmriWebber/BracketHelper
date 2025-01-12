@@ -248,7 +248,6 @@ export default {
             ctx.fillText(driverText, xPosition, yPosition);
             driver.position = { driverX: xPosition, driverY: yPosition }; // Save position for hover detection
             driver.order = index + 1
-            driver.rank = index + 1
             driver.round = 32
 
           });
@@ -580,10 +579,21 @@ export default {
       const xRatio = 1920 / rect.width;
       const yRatio = 1080 / rect.height;
 
-      this.hoveredDriver = this.bracket.top32.find(driver => {
+      const allDrivers = [
+        ...this.bracket.top32,
+        ...this.bracket.top16,
+        ...this.bracket.top8,
+        ...this.bracket.top4,
+        ...this.bracket.top2,
+        ...this.bracket.podium,
+      ];
+
+      this.hoveredDriver = allDrivers.find(driver => {
         const { driverX, driverY } = driver.position;
         return x >= driverX - 80 && x <= driverX + 80 && y >= driverY - 20 && y <= driverY + 20; // Adjust these values based on text size
       });
+
+      console.log(this.hoveredDriver);
 
       if (this.hoveredDriver) {
         this.showButton = true;
@@ -607,20 +617,21 @@ export default {
     },
     advanceDriver() {
       if (this.hoveredDriver) {
+        const advanceDriver = { ...this.hoveredDriver };
         if(this.hoveredDriver.round === 32) {
-          this.bracket.top16.push(this.hoveredDriver);
+          this.bracket.top16.push(advanceDriver);
           this.$refs.alert.showAlert('success', `${this.hoveredDriver.name} advanced!`, 'Success');
           this.showButton = false;
         } else if (this.hoveredDriver.round === 16) {
-          this.bracket.top8.push(this.hoveredDriver);
+          this.bracket.top8.push(advanceDriver);
           this.$refs.alert.showAlert('success', `${this.hoveredDriver.name} advanced!`, 'Success');
           this.showButton = false;
         } else if (this.hoveredDriver.round === 8) {
-          this.bracket.top4.push(this.hoveredDriver);
+          this.bracket.top4.push(advanceDriver);
           this.$refs.alert.showAlert('success', `${this.hoveredDriver.name} advanced!`, 'Success');
           this.showButton = false;
         } else if (this.hoveredDriver.round === 4) {
-          this.bracket.top2.push(this.hoveredDriver);
+          this.bracket.top2.push(advanceDriver);
           this.$refs.alert.showAlert('success', `${this.hoveredDriver.name} advanced!`, 'Success');
           this.showButton = false;
         } else if (this.hoveredDriver.round === 2) {
@@ -629,8 +640,8 @@ export default {
           const secondPlace = this.bracket.top2.find(driver => driver !== firstPlace);
           const remainingTop4 = this.bracket.top4.filter(driver => driver !== firstPlace && driver !== secondPlace);
           const thirdPlace = remainingTop4.reduce((prev, curr) => {
-            const prevRank = this.bracket.top32.find(driver => driver.name === prev.name).rank;
-            const currRank = this.bracket.top32.find(driver => driver.name === curr.name).rank;
+            const prevRank = this.bracket.top32.find(driver => driver.name === prev.name).order;
+            const currRank = this.bracket.top32.find(driver => driver.name === curr.name).order;
             return prevRank < currRank ? prev : curr;
           });
           this.bracket.podium.push(
