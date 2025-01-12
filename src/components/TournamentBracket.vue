@@ -198,11 +198,11 @@ export default {
                 break;
               case 24:
                 xPosition = 140;
-                yPosition = 373;
+                yPosition = 371;
                 break;
               case 25:
                 xPosition = canvas.width - 140;
-                yPosition = 373;
+                yPosition = 371;
                 break;
               case 26:
                 xPosition = canvas.width - 140;
