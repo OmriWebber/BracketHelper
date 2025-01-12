@@ -68,6 +68,11 @@ export default {
       hoveredDriver: null,
       showModal: false,
       outputUrl: '',
+      activeBattle: {
+        lead: {},
+        chase: {},
+        round: 0,
+      },
     };
   },
   methods: {
@@ -772,12 +777,31 @@ export default {
     },
     async setActiveBattle() {
       if (this.hoveredDriver) {
-        this.bracket.activeBattle.lead = await this.hoveredDriver;
-        const opponentOrder = (this.bracket.activeBattle.round + 1) - this.hoveredDriver.order;
-        const opponent = this.bracket.top32.find(driver => driver.order === opponentOrder);
-        this.bracket.activeBattle.chase = opponent;
-        this.bracket.activeBattle.round = this.hoveredDriver.round;
-        this.drawActiveBattle();
+        this.activeBattle.lead = this.hoveredDriver;
+        const opponentOrder = (this.hoveredDriver.round + 1) - this.hoveredDriver.order;
+        let opponent;
+        switch (this.hoveredDriver.round) {
+          case 32:
+            opponent = this.bracket.top32.find(driver => driver.order === opponentOrder);
+            break;
+          case 16:
+            opponent = this.bracket.top16.find(driver => driver.order === opponentOrder);
+            break;
+          case 8:
+            opponent = this.bracket.top8.find(driver => driver.order === opponentOrder);
+            break;
+          case 4:
+            opponent = this.bracket.top4.find(driver => driver.order === opponentOrder);
+            break;
+          case 2:
+            opponent = this.bracket.top2.find(driver => driver.order === opponentOrder);
+            break;
+        }
+        this.activeBattle.chase = opponent;
+        this.activeBattle.round = this.hoveredDriver.round;
+
+        console.log(this.activeBattle);
+        await this.drawActiveBattle();
         this.$refs.alert.showAlert('success', `Lead Driver ${this.hoveredDriver.name} vs Chase Driver ${opponent.name} set as active battle!`, 'Success');
       }
     },
@@ -800,20 +824,21 @@ export default {
         ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
         // Draw the active battle
-        ctx.font = '18px FutureEarth';
+        ctx.font = '22px FutureEarth';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
+        ctx.textTransform = 'uppercase';
 
         const xPositionLead = 960;
-        const yPositionLead = 564;
+        const yPositionLead = 565;
 
         const xPositionChase = 960;
-        const yPositionChase = 640;
+        const yPositionChase = 642;
 
-        const leadDriverText = `${this.bracket.activeBattle.lead.name}`;
-        const chaseDriverText = `${this.bracket.activeBattle.chase.name}`;
-        ctx.fillText(leadDriverText, xPositionLead, yPositionLead);
-        ctx.fillText(chaseDriverText, xPositionChase, yPositionChase);
+        const leadDriverText = `${this.activeBattle.lead.name}`;
+        const chaseDriverText = `${this.activeBattle.chase.name}`;
+        ctx.fillText(leadDriverText.toUpperCase(), xPositionLead, yPositionLead);
+        ctx.fillText(chaseDriverText.toUpperCase(), xPositionChase, yPositionChase);
       };
       this.saveActiveBattleImage();
     },
