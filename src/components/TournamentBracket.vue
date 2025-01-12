@@ -6,6 +6,7 @@
     <canvas id="bracketCanvas" width="1920" height="1080" @click="handleClick"></canvas>
     <div class="bracket-action-container" v-if="showButton" :style="buttonStyle">
       <button class="bracket-advance-button" @click="advanceDriver">{{ this.advanceText }}</button>
+      <button class="bracket-setactive-button" @click="setActiveBattle">Set Active</button>
       <button class="bracket-dq-button" @click="disqualifyDriver">DQ</button>
       <button class="bracket-delete-button" v-if="showDeleteButton" @click="deleteDriver"><img src="/images/x.svg" alt="Delete Button"/></button>
     </div>
@@ -24,12 +25,14 @@
         <button class="export" @click="exportBracketImage">Export Bracket Image</button>
         <button class="url" @click="saveBracketImageToURL">Save Image to Custom Static URL</button>
       </div>
-
-      
     </div>
-    
   </div>
   <saveBracketImageModal :show="showModal" :outputUrl="outputUrl" @close="showModal = false" @save="saveImageWithFileName"></saveBracketImageModal>
+
+  <div class="active-battle-container">
+    <h2 class="battle-title">Active Battle</h2>
+      <canvas id="activeBattleCanvas" width="1920" height="1080"></canvas>
+  </div>
 </template>
 
 <script>
@@ -565,7 +568,7 @@ export default {
           this.$refs.alert.showAlert('success', 'Bracket image saved!', 'Success');
         })
         .catch(error => {
-          this.$refs.alert.showAlert('fail', 'Error saving bracket image', 'Fail');
+          this.$refs.alert.showAlert('error', 'Error saving bracket image', 'Fail');
           console.error('There was an error saving the bracket image!', error);
         });
     },
@@ -767,6 +770,70 @@ export default {
         console.error('There was an error saving the bracket image with filename!', error);
       }
     },
+    async setActiveBattle() {
+      if (this.hoveredDriver) {
+        this.bracket.activeBattle.lead = await this.hoveredDriver;
+        const opponentOrder = (this.bracket.activeBattle.round + 1) - this.hoveredDriver.order;
+        const opponent = this.bracket.top32.find(driver => driver.order === opponentOrder);
+        this.bracket.activeBattle.chase = opponent;
+        this.bracket.activeBattle.round = this.hoveredDriver.round;
+        this.drawActiveBattle();
+        this.$refs.alert.showAlert('success', `Lead Driver ${this.hoveredDriver.name} vs Chase Driver ${opponent.name} set as active battle!`, 'Success');
+      }
+    },
+    drawActiveBattle() {
+      const canvas = document.getElementById('activeBattleCanvas');
+      const ctx = canvas.getContext('2d');
+      const background = new Image();
+      background.src = '../images/battle-bg.png'; // Ensure this path is correct
+
+      // Load the custom font
+      const font = new FontFace('FutureEarth', 'url(/fonts/future-earth.ttf)');
+      font.load();
+      document.fonts.add(font);
+
+      background.onload = async () => {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the background image
+        ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+        // Draw the active battle
+        ctx.font = '18px FutureEarth';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+
+        const xPositionLead = 960;
+        const yPositionLead = 564;
+
+        const xPositionChase = 960;
+        const yPositionChase = 640;
+
+        const leadDriverText = `${this.bracket.activeBattle.lead.name}`;
+        const chaseDriverText = `${this.bracket.activeBattle.chase.name}`;
+        ctx.fillText(leadDriverText, xPositionLead, yPositionLead);
+        ctx.fillText(chaseDriverText, xPositionChase, yPositionChase);
+      };
+      this.saveActiveBattleImage();
+    },
+    saveActiveBattleImage() {
+      const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+      const canvas = document.getElementById('activeBattleCanvas');
+      const image = canvas.toDataURL('image/png');
+      const imageData = image.replace(/^data:image\/\w+;base64,/, '');
+
+      axios.post(`${backendUrl}/save-active-battle-image`, { 
+        image: imageData,
+      })
+        .then(response => {
+          this.$refs.alert.showAlert('success', 'Active Battle image saved!', 'Success');
+        })
+        .catch(error => {
+          this.$refs.alert.showAlert('error', 'Error saving active battle image', 'Fail');
+          console.error('There was an error saving the active battle image!', error);
+        });
+    },
 
   },
   mounted() {
@@ -803,6 +870,7 @@ export default {
   margin-bottom: 20px;
   color: #333;
   font-family: FutureEarth, sans-serif;
+  text-transform: uppercase;
 }
 
 .bracket-container {
@@ -848,7 +916,7 @@ export default {
   color: #222;
 }
 
-#bracketCanvas {
+#bracketCanvas, #activeBattleCanvas {
   width: 100%;
   height: auto;
 }
@@ -970,6 +1038,21 @@ export default {
   }
 }
 
+.bracket-setactive-button {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  border: 1px solid #212121;
+  border-radius: 4px 4px 4px 4px;
+  white-space: nowrap;
+  background-color: #ffffff;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #d3d3d3;
+  }
+}
+
 .bracket-dq-button {
   font-size: 12px;
   font-weight: 600;
@@ -1003,5 +1086,26 @@ export default {
     width: 12px;
     height: 12px;
   }
+}
+
+.active-battle-container {
+  padding: 40px 0px 120px 0px;
+  overflow: hidden;
+
+
+  .battle-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    color: #333;
+    font-family: FutureEarth, sans-serif;
+    text-transform: uppercase;
+  }
+}
+
+#activeBattleCanvas {
+  transform: scale(3);
 }
 </style>

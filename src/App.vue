@@ -123,7 +123,7 @@ export default {
             });
           } else {
             bracket.top32.push({
-                name: 'BYE RUN'
+                name: '--'
             });
           }
         }
