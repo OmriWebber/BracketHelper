@@ -550,7 +550,6 @@ export default {
     drawTop16Bracket() {
       const canvas = document.getElementById('bracketCanvas');
       const ctx = canvas.getContext('2d');
-      console.log('Draw Top 16 Bracket')
       ctx.fillText('Top 16 Bracket', canvas.width / 2, 50);
     },
     async saveBracketImage() {
@@ -585,7 +584,6 @@ export default {
       });
 
       if (this.hoveredDriver) {
-        console.log(this.hoveredDriver)
         this.showButton = true;
         if(this.hoveredDriver.round === 16 || this.hoveredDriver.round === 8 || this.hoveredDriver.round === 4 || this.hoveredDriver.round === 2 || this.hoveredDriver.round === 'podium') {
           this.showDeleteButton = true;
@@ -638,8 +636,6 @@ export default {
             { ...secondPlace, order: 2, round: 'podium' },
             { ...thirdPlace, order: 3, round: 'podium' }
           );
-
-          console.log(this.bracket.podium)
 
           this.$refs.alert.showAlert('success', `${this.hoveredDriver.name} advanced!`, 'Success');
           this.showButton = false;
@@ -767,7 +763,7 @@ export default {
         this.outputUrl = response.data.url; // Assuming the response contains the URL
         this.$refs.alert.showAlert('success', 'Bracket image saved with filename!', 'Success');
       } catch (error) {
-        this.$refs.alert.showAlert('fail', 'Error saving bracket image with filename', 'Fail');
+        this.$refs.alert.showAlert('error', 'Error saving bracket image with filename', 'Error');
         console.error('There was an error saving the bracket image with filename!', error);
       }
     },
@@ -972,7 +968,6 @@ export default {
   &:hover {
     background-color: #d3d3d3;
   }
-
 }
 
 .bracket-dq-button {
@@ -1009,5 +1004,4 @@ export default {
     height: 12px;
   }
 }
-
 </style>
