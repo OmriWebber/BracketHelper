@@ -31,7 +31,7 @@
 
   <div class="active-battle-container">
     <h2 class="battle-title">Active Battle</h2>
-      <canvas id="activeBattleCanvas" width="1920" height="1080"></canvas>
+      <canvas id="activeBattleCanvas" width="263" height="232"></canvas>
   </div>
 </template>
 
@@ -838,11 +838,11 @@ export default {
         ctx.textAlign = 'center';
         ctx.textTransform = 'uppercase';
 
-        const xPositionLead = 960;
-        const yPositionLead = 565;
+        const xPositionLead = 130;
+        const yPositionLead = 141;
 
-        const xPositionChase = 960;
-        const yPositionChase = 642;
+        const xPositionChase = 130;
+        const yPositionChase = 216;
 
         const leadDriverText = `${this.activeBattle.lead.name}`;
         const chaseDriverText = `${this.activeBattle.chase.name}`;
@@ -952,7 +952,7 @@ export default {
   color: #222;
 }
 
-#bracketCanvas, #activeBattleCanvas {
+#bracketCanvas {
   width: 100%;
   height: auto;
 }
@@ -1139,9 +1139,5 @@ export default {
     font-family: FutureEarth, sans-serif;
     text-transform: uppercase;
   }
-}
-
-#activeBattleCanvas {
-  transform: scale(3);
 }
 </style>
