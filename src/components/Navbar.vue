@@ -9,8 +9,7 @@
                 <img class="logo" src="/images/logo.png" alt="">
             </div>
             <ul class="nav-links">
-                <h4>Bracket Helper</h4>
-
+                <h5>Bracket Helper</h5>
             </ul>
         </nav>
     </header>
@@ -24,7 +23,7 @@
         nav {
             display: flex;
             align-items: center;
-            padding: 25px 16px;
+            padding: 0px 16px;
             color: rgb(216, 216, 216);
 
             .branding {
@@ -53,6 +52,24 @@
                 a {
                     text-decoration: none;
                     color: inherit;
+                }
+
+                .fileSelect {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    justify-content: center;
+                    align-items: center;
+
+                    select {
+                        width: 100%;
+                        margin-right: 10px;
+                    }
+
+                    button {
+                        width: 50%;
+                        white-space: nowrap;
+                    }
                 }
 
             }

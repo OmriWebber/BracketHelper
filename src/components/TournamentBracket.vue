@@ -22,8 +22,8 @@
 
       <div class="bracket-export-button-container">
         <button class="copy" @click="copyBracketDataToClipboard">Copy Bracket Data</button>
-        <button class="export" @click="exportBracketImage">Export Bracket Image</button>
-        <button class="url" @click="saveBracketImageToURL">Save Image to Custom Static URL</button>
+        <button class="export" @click="exportBracketImage">Download Bracket Image</button>
+        <button class="url" @click="saveBracketImageToURL">Save Bracket Image to Custom URL</button>
       </div>
     </div>
   </div>
@@ -248,6 +248,7 @@ export default {
             ctx.fillText(driverText, xPosition, yPosition);
             driver.position = { driverX: xPosition, driverY: yPosition }; // Save position for hover detection
             driver.order = index + 1
+            driver.rank = index + 1
             driver.round = 32
 
           });
@@ -548,17 +549,10 @@ export default {
             });
           }
 
-          
-
           this.saveBracket();
           this.saveBracketImage();
         };
       }
-    },
-    drawTop16Bracket() {
-      const canvas = document.getElementById('bracketCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.fillText('Top 16 Bracket', canvas.width / 2, 50);
     },
     async saveBracketImage() {
       const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
@@ -570,7 +564,7 @@ export default {
         image: imageData,
       })
         .then(response => {
-          this.$refs.alert.showAlert('success', 'Bracket image saved!', 'Success');
+          // this.$refs.alert.showAlert('success', 'Bracket image saved!', 'Success');
         })
         .catch(error => {
           this.$refs.alert.showAlert('error', 'Error saving bracket image', 'Fail');
@@ -635,9 +629,9 @@ export default {
           const secondPlace = this.bracket.top2.find(driver => driver !== firstPlace);
           const remainingTop4 = this.bracket.top4.filter(driver => driver !== firstPlace && driver !== secondPlace);
           const thirdPlace = remainingTop4.reduce((prev, curr) => {
-            const prevOrder = this.bracket.top32.find(driver => driver.name === prev.name).order;
-            const currOrder = this.bracket.top32.find(driver => driver.name === curr.name).order;
-            return prevOrder < currOrder ? prev : curr;
+            const prevRank = this.bracket.top32.find(driver => driver.name === prev.name).rank;
+            const currRank = this.bracket.top32.find(driver => driver.name === curr.name).rank;
+            return prevRank < currRank ? prev : curr;
           });
           this.bracket.podium.push(
             { ...firstPlace, order: 1, round: 'podium' },
@@ -757,6 +751,7 @@ export default {
       this.showModal = true;
       this.outputUrl = '';
     },
+
     async saveImageWithFileName(fileName) {
       const canvas = document.getElementById('bracketCanvas');
       const image = canvas.toDataURL('image/png');
@@ -775,6 +770,7 @@ export default {
         console.error('There was an error saving the bracket image with filename!', error);
       }
     },
+
     async setActiveBattle() {
       if (this.hoveredDriver) {
         this.activeBattle.lead = this.hoveredDriver;
@@ -800,11 +796,12 @@ export default {
         this.activeBattle.chase = opponent;
         this.activeBattle.round = this.hoveredDriver.round;
 
-        console.log(this.activeBattle);
         await this.drawActiveBattle();
+        this.showButton = false;
         this.$refs.alert.showAlert('success', `Lead Driver ${this.hoveredDriver.name} vs Chase Driver ${opponent.name} set as active battle!`, 'Success');
       }
     },
+
     drawActiveBattle() {
       const canvas = document.getElementById('activeBattleCanvas');
       const ctx = canvas.getContext('2d');
@@ -842,6 +839,7 @@ export default {
       };
       this.saveActiveBattleImage();
     },
+
     saveActiveBattleImage() {
       const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
       const canvas = document.getElementById('activeBattleCanvas');
@@ -852,7 +850,7 @@ export default {
         image: imageData,
       })
         .then(response => {
-          this.$refs.alert.showAlert('success', 'Active Battle image saved!', 'Success');
+          // this.$refs.alert.showAlert('success', 'Active Battle image saved!', 'Success');
         })
         .catch(error => {
           this.$refs.alert.showAlert('error', 'Error saving active battle image', 'Fail');

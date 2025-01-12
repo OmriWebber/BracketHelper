@@ -102,7 +102,6 @@ export default {
       if (drivers.value && drivers.value.length > 0) {
         let roundName = selectedFile.value.pathname || '';
         
-        console.log(roundName)
         const bracket = {
           round: roundName.split('.')[0],
           top32: [],
@@ -111,21 +110,34 @@ export default {
           top4: [],
           top2: [],
           podium: [],
+          cutoff: cutoff.value
         };
         const totalDrivers = drivers.value.length;
-        const numByes = Math.max(0, cutoff.value - totalDrivers);
 
         // Add matches
         for (let i = 0; i < cutoff.value; i++) {
-          if (i < totalDrivers) {
-            bracket.top32.push({
-                name: drivers.value[i].name,
-            });
+          if(cutoff.value === 16) {
+            if (i < totalDrivers) {
+              bracket.top16.push({
+                  name: drivers.value[i].name,
+              });
+            } else {
+              bracket.top16.push({
+                  name: '--'
+              });
+            }
           } else {
-            bracket.top32.push({
-                name: '--'
-            });
+            if (i < totalDrivers) {
+              bracket.top32.push({
+                  name: drivers.value[i].name,
+              });
+            } else {
+              bracket.top32.push({
+                  name: '--'
+              });
+            }
           }
+          
         }
 
 
@@ -272,12 +284,10 @@ export default {
                 </div>
                 <div class="controls col-12">
                   <select v-model="cutoff" name="cutoff" id="cutoff">
-                    <option value="8">Top 8</option>
                     <option value="16">Top 16</option>
                     <option value="32">Top 32</option>
                   </select>
                   <div>
-                    <button class="btn btn-info" @click="generateTournamentBracket">Generate Bracket</button>
                     <button class="btn btn-primary" style="margin-right: 0px;" @click="copyToClipboard">
                       <i class="bi-clipboard"></i> Copy
                     </button>
@@ -299,6 +309,10 @@ export default {
                 <div class="cutoff-line" v-if="index == cutoff - 1">Top {{ cutoff }} Cutoff</div>
               </li>
             </ul>
+            <div class="generate-button-container">
+              <button class="btn btn-info" @click="generateTournamentBracket">Generate Bracket</button>
+            </div>
+            
           </div>
         </div>
         <BracketComponent :bracket="tournamentBracket" />
@@ -461,6 +475,12 @@ footer {
   ::v-deep .dropdown-toggle-placeholder {
     color: #c4c4c4;
   }
+}
+
+.generate-button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 0px;
 }
 
 </style>
