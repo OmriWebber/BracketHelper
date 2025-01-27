@@ -11,7 +11,7 @@ export default {
     components: {
         VueBasicAlert
     },
-    emits: ['driver-added'],
+    emits: ['driver-added', 'update-quali'],
     methods: {
         addDriver() {
             this.appendDriver()
@@ -23,6 +23,7 @@ export default {
         const driverScoreAngle = ref()
         const driverScoreStyle = ref()
         const alert = ref(null)
+        let dnf = ref(false);
         const selectedFile = ref(localStorage.getItem('selectedFile') || '');
 
         const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
@@ -106,6 +107,59 @@ export default {
                 });
             }
         };
+
+        const updateCurrentDriver = () => {
+            const currentDriver = [
+                {
+                    name: driverName.value,
+                    score: {
+                        line: driverScoreLine.value,
+                        angle: driverScoreAngle.value,
+                        style: driverScoreStyle.value,
+                        total: (driverScoreLine.value || 0) + (driverScoreAngle.value || 0) + (driverScoreStyle.value || 0)
+                    },
+                    dnf: false,
+                    fulldnf: false
+                }
+            ];
+
+            localStorage.setItem('currentDriver', JSON.stringify(currentDriver));
+            emit('update-quali');
+        }
+
+        const dnfDriver = () => {
+            const currentDriverStr = localStorage.getItem('currentDriver');
+            if (!currentDriverStr) {
+                alert.value.showAlert('error', 'No driver to DNF', 'Error');
+                return;
+            }
+
+            const currentDriver = JSON.parse(currentDriverStr);
+
+            if (currentDriver[0].dnf) {
+                currentDriver[0].fulldnf = true;
+                driverScoreLine.value = '0';
+                driverScoreAngle.value = '0';
+                driverScoreStyle.value = '0';
+                
+            } else {
+                currentDriver[0].dnf = true;
+                dnf.value = true;
+            }
+
+            localStorage.setItem('currentDriver', JSON.stringify(currentDriver));
+            emit('update-quali');
+        }
+
+        const clearDriver = () => {
+            driverName.value = '';
+            driverScoreLine.value = '';
+            driverScoreAngle.value = '';
+            driverScoreStyle.value = '';
+            dnf.value = false;
+            localStorage.removeItem('currentDriver');
+            emit('update-quali');
+        }
         
         return {
             driverName,
@@ -113,7 +167,11 @@ export default {
             driverScoreAngle,
             driverScoreStyle,
             appendDriver,
-            alert
+            updateCurrentDriver,
+            dnfDriver,
+            clearDriver,
+            alert,
+            dnf
         }
     }
 }
@@ -127,6 +185,14 @@ export default {
             <input v-model="driverName" type="text" placeholder="Driver's Name"/>
         </div>
         
+        <div class="run-container">
+            <div class="run-num" v-if="!dnf">
+                Run 1
+            </div>
+            <div class="run-num" v-if="dnf">
+                Run 2
+            </div>
+        </div>
         <div class="row">
             <div class="col-4">
                 <input v-model="driverScoreLine" type="number" placeholder="Line">
@@ -141,15 +207,44 @@ export default {
         
     </div>
     
-    <div class="row">
+    <div class="row driver-actions">
         <div class="col-12">
             <button class="btn btn-dark" @click="appendDriver">Add Driver</button>
         </div>
+        <div class="col-6">
+            <button class="btn btn-success" @click="updateCurrentDriver">Update Stream</button>
+        </div>
+        <div class="col-2">
+            <button class="btn btn-danger" @click="dnfDriver">DNF</button>
+        </div>
+        <div class="col-4">
+            <button class="btn btn-secondary" @click="clearDriver">Clear</button>
+        </div>
+        
     </div>
 
 </template>
 
 <style lang="scss" scoped>
+
+    .run-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: -10px;
+        margin-top: 6px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    .driver-actions {
+        div {
+            padding: 0.2rem !important;
+        }
+
+        button {
+            padding: 0.5rem !important;
+        }
+    }
     .checkbox {
         text-align: center !important;
         padding: 0 0 20px 0;

@@ -9,6 +9,7 @@ import useClipboard from 'vue-clipboard3'
 import FilenameModal from './components/filenameModal.vue';
 import PasswordModal from './components/passwordModal.vue';
 import BracketComponent from './components/TournamentBracket.vue';
+import CurrentQualifying from './components/currentQualifying.vue';
 
 export default {
   name: 'App',
@@ -18,7 +19,8 @@ export default {
     Navbar,
     FilenameModal,
     PasswordModal,
-    BracketComponent
+    BracketComponent,
+    CurrentQualifying,
   },
   setup () {
     const authenticated = ref(false); // Add a ref to track authentication status
@@ -38,6 +40,9 @@ export default {
     const { toClipboard } = useClipboard()
     const tournamentBracket = ref([]);
     const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+
+    // Create a ref for the current driver
+    const currentDriver = ref(JSON.parse(localStorage.getItem('currentDriver')) || []);
 
     onMounted(() => {
       // Check if the user is already authenticated
@@ -218,6 +223,10 @@ export default {
       }
     };
 
+    function updateCurrentDriver () {
+      currentDriver.value = JSON.parse(localStorage.getItem('currentDriver')) || [];
+    }
+
     // Watch for changes in the selected file and save it to local storage
     watch(selectedFile, (newFile) => {
       alert.value.showAlert('success', 'Changed selected file, loading drivers..', 'File changed to ' + newFile.pathname);
@@ -240,7 +249,9 @@ export default {
       alert,
       tournamentBracket,
       generateTournamentBracket,
-      copyToClipboard
+      copyToClipboard,
+      currentDriver,
+      updateCurrentDriver,
     }
   }
 }
@@ -271,7 +282,7 @@ export default {
                   </div>
                 </div>
               </div>
-              <DriverInput @driver-added="loadDrivers" />
+              <DriverInput @driver-added="loadDrivers" @update-quali="updateCurrentDriver" />
               
 
             </div>
@@ -316,6 +327,7 @@ export default {
           </div>
         </div>
         <BracketComponent :bracket="tournamentBracket" />
+        <CurrentQualifying :currentDriver="currentDriver" />
       </div>
 
       <footer class="text-light text-center text-lg-start">
