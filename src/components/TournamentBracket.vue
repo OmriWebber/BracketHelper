@@ -22,6 +22,7 @@
 
       <div class="bracket-export-button-container">
         <button class="copy" @click="copyBracketDataToClipboard">Copy Bracket Data</button>
+        <!-- <button class="copy" @click="saveBracketData">Save Bracket Data to DB</button> -->
         <button class="export" @click="exportBracketImage">Download Bracket Image</button>
         <button class="url" @click="saveBracketImageToURL">Save Bracket Image to Custom URL</button>
       </div>
@@ -251,10 +252,6 @@ export default {
             driver.round = 32
 
           });
-          ctx.font = 'italic 50px FutureEarth';
-          ctx.fillStyle = 'white';
-
-          ctx.fillText(this.bracket.round, canvas.width / 2, (canvas.height / 2) + 12);
 
           let top16 = this.bracket.top16;
           if(top16.length > 0) {
@@ -747,6 +744,34 @@ export default {
       const bracketData = JSON.stringify(this.bracket);
       navigator.clipboard.writeText(bracketData);
       this.$refs.alert.showAlert('success', 'Bracket data copied to clipboard!', 'Success');
+    },
+
+    saveBracketData() {
+      // Prepare the data to be sent in the POST request
+      let postData = JSON.stringify({
+        season: parseInt(this.bracket.season),
+        round: parseInt(this.bracket.round),
+        bracket: this.bracket,
+      });
+
+      let axiosConfig = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://www.forzadriftevents.com/api/bracket/save',
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        data : postData
+      };
+      
+      // Make the POST request to the API
+      const response = axios.request(axiosConfig)
+        .then((response) => {
+          console.log(`Bracket Data for Season ${season} Round ${round} saved to database!`);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
 
     exportBracketImage() {

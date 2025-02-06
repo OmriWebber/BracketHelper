@@ -4,18 +4,20 @@
 import { ref, onMounted } from 'vue'
 import VueBasicAlert from 'vue-basic-alert'
 import axios from 'axios'
+import AutoComplete from 'primevue/autocomplete';
 
 
 export default {
     name: 'DriverInput',
     components: {
-        VueBasicAlert
+        VueBasicAlert,
+        AutoComplete
     },
     emits: ['driver-added', 'update-quali'],
     methods: {
         addDriver() {
             this.appendDriver()
-        }
+        },
     },
     setup (props, { emit }) {
         const driverName = ref('')
@@ -25,8 +27,25 @@ export default {
         const alert = ref(null)
         let dnf = ref(false);
         const selectedFile = ref(localStorage.getItem('selectedFile') || '');
+        const userNames = ref([]);
+        const filteredUserNames = ref([]);
 
         const backendUrl = 'https://bracket-helper-backend-y2ec.vercel.app';
+
+        const fetchUserNames = async () => {
+            try {
+                const response = await axios.get('https://www.forzadriftevents.com/api/users');
+                userNames.value = response.data.map(user => user.name);
+            } catch (error) {
+                console.error('Error fetching user names:', error);
+            }
+        };
+
+        const search = (event) => {
+            filteredUserNames.value = userNames.value.filter(name =>
+                name.toLowerCase().includes(event.query.toLowerCase())
+            );
+        };
 
         const appendDriver = () => {
             if (!driverName.value.trim()) {
@@ -160,6 +179,9 @@ export default {
             localStorage.removeItem('currentDriver');
             emit('update-quali');
         }
+        onMounted(() => {
+            fetchUserNames();
+        });
         
         return {
             driverName,
@@ -171,9 +193,12 @@ export default {
             dnfDriver,
             clearDriver,
             alert,
-            dnf
+            dnf,
+            userNames,
+            filteredUserNames,
+            search
         }
-    }
+    },
 }
 </script>
 
@@ -182,7 +207,7 @@ export default {
 
     <div class="row" @keyup.enter="addDriver">
         <div class="col-12">
-            <input v-model="driverName" type="text" placeholder="Driver's Name"/>
+            <AutoComplete class="driverInput" v-model="driverName" :suggestions="filteredUserNames" type="text" @complete="search" placeholder="Driver's Name"></AutoComplete>
         </div>
         
         <div class="run-container">
@@ -273,12 +298,13 @@ export default {
             }
         }
 
-        input {
+        input, .driverInput {
             width:100%;
             margin: 0.25rem;
             padding: 0.5rem;
             border-radius: 0.5rem;
             border: 1px solid #ccc;
+            background-color: white;
         }
 
         button {
@@ -288,6 +314,10 @@ export default {
             border-radius: 0.5rem;
             border: 1px solid #ccc;
         }
+    }
+
+    .p-autocomplete-input {
+        width: 100%;
     }
 
 </style>

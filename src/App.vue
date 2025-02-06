@@ -10,6 +10,7 @@ import FilenameModal from './components/filenameModal.vue';
 import PasswordModal from './components/passwordModal.vue';
 import BracketComponent from './components/TournamentBracket.vue';
 import CurrentQualifying from './components/currentQualifying.vue';
+import CurrentScores from './components/currentScores.vue';
 
 export default {
   name: 'App',
@@ -21,6 +22,7 @@ export default {
     PasswordModal,
     BracketComponent,
     CurrentQualifying,
+    CurrentScores
   },
   setup () {
     const authenticated = ref(false); // Add a ref to track authentication status
@@ -328,6 +330,7 @@ export default {
         </div>
         <BracketComponent :bracket="tournamentBracket" />
         <CurrentQualifying :currentDriver="currentDriver" />
+        <CurrentScores :drivers="drivers" />
       </div>
 
       <footer class="text-light text-center text-lg-start">
@@ -343,7 +346,7 @@ export default {
     <FilenameModal :show="showModal" @close="showModal = false" @submit="createFile" />
 </template>
 
-<style scoped>
+<style>
 
 .controls {
   display: flex;
@@ -401,6 +404,7 @@ footer {
 
   button {
     width: 50%;
+    margin: 0px;
   }
 }
 
@@ -495,4 +499,18 @@ footer {
   margin-top: 0px;
 }
 
+.p-autocomplete-overlay {
+  background-color: white !important;
+  border: 1px solid #ccc !important;
+  margin-top: 12px !important;
+  border-radius: 8px !important;
+}
+
+.p-autocomplete-option, .p-autocomplete-empty-message {
+  padding: 4px !important;
+}
+
+.p-autocomplete-input {
+  width: 100% !important;
+}
 </style>
